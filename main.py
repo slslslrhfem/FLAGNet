@@ -20,22 +20,22 @@ from sklearn.preprocessing import MultiLabelBinarizer
 import matplotlib.pyplot as plt
 
 
-midifilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_large/prime_midi'))
-jsonfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_large/descriptor'))
-csvfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_large/prime_csv'))
+midifilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/prime_midi'))
+jsonfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/descriptor'))
+csvfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/prime_csv'))
 midilist=[]
 csvlist=[]
 jsonlist=[]
 prettymidilist=[]
 
 for filenames in tqdm(midifilenames,position=0):
-  midi_path='PPDD-Sep2018_sym_mono_large/prime_midi/'+filenames
+  midi_path='PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/prime_midi/'+filenames
   mid = mido.MidiFile(midi_path, clip=True)
   midilist.append(mid)
   prettymid=pretty_midi.PrettyMIDI(midi_path)
   prettymidilist.append(prettymid)
 for filenames in tqdm(csvfilenames,position=0):
-  csv_path='PPDD-Sep2018_sym_mono_large/prime_csv/'+filenames
+  csv_path='PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/prime_csv/'+filenames
   csv = pandas.read_csv(csv_path)
   csvlist.append(csv)
 for filenames in tqdm(jsonfilenames,position=0):
@@ -93,15 +93,12 @@ for songs in bar_matrix_list2:
     all_matrix.append(matrix)
 bar_matrix_list2=[]#이거도
 
-
-train_matrix=np.array(all_matrix[:int(num_data*0.8)])
-train_label=np.array(all_labels[:int(num_data*0.8)])
-all_matrix=all_matrix[int(num_data*0.8):]
-all_labels=all_labels[int(num_data*0.8):]
-valid_matrix=np.array(all_matrix[:int(num_data*0.95)])
-valid_label=np.array(all_labels[:int(num_data*0.95)])
-test_matrix=np.array(all_matrix[int(num_data*0.95)])
-test_label=np.array(all_labels[int(num_data*0.95)])#27000과 34000은 임의로 잘라두었다.
+train_matrix=np.array(all_matrix[:1500])
+train_label=np.array(all_labels[:1500])
+valid_matrix=np.array(all_matrix[1500:1700])
+valid_label=np.array(all_labels[1500:1700])
+test_matrix=np.array(all_matrix[1700:])
+test_label=np.array(all_labels[1700:])
 mlb=MultiLabelBinarizer()
 mlb.fit([['no skills','resting','repeating','up_steping','down_steping','up_leaping','down_leaping','steping_twisting','leaping_twisting','fast_rhythm','One_rhythm','triplet','staccato','continuing_rhythm']])
 train_label2=mlb.transform(train_label)
@@ -119,13 +116,12 @@ classifier.compile(loss=keras.losses.BinaryCrossentropy(
       from_logits=False, label_smoothing=0.1,
       name='binary_crossentropy'
   ), optimizer='adam', metrics=['accuracy',recall,precision,f1score])
-
 classifier.fit(
-      train_matrix,train_label2,batch_size=256,
-      epochs=500,
-      validation_data=(valid_matrix,valid_label2),
-      callbacks=callbacks,
-  )
+      train_matrix,train_label2,batch_size=32,
+      epochs=50,
+      validation_data=(valid_matrix,valid_label2)
+  ,verbose=2, callbacks=callbacks
+)
 
 # testing
 
@@ -143,9 +139,9 @@ for i in range(len(testresult)):
   resultmat.append(eval_result)
 resultmat=np.array(resultmat)
 testidx=mlb.inverse_transform(resultmat)
+
 classidx=mlb.inverse_transform(test_label2)
 for i in range(len(testidx)):
-  print(testidx[i], classidx[i])
   for classes in classidx[i]:
     if (classes not in classnum):
       classnum[classes]=1

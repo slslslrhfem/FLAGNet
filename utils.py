@@ -3,7 +3,7 @@ import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 def get_meta(filename):
-  with open('PPDD-Sep2018_sym_mono_large/descriptor/'+filename) as json_file:
+  with open('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/descriptor/'+filename) as json_file:
     meta_data = json.load(json_file)
   return meta_data
 def csv_to_array(csvlist,jsonlist):
