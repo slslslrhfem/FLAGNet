@@ -19,7 +19,6 @@ from feature_defining import bar_to_contour, contour_to_label
 from sklearn.preprocessing import MultiLabelBinarizer
 import matplotlib.pyplot as plt
 
-
 midifilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/prime_midi'))
 jsonfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/descriptor'))
 csvfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/prime_csv'))
