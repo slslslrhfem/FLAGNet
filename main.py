@@ -14,9 +14,10 @@ import pretty_midi
 import mido
 from tqdm import tqdm
 from model import f1score,precision,make_classifier,make_model,recall
-from utils import get_meta,csv_to_array,midi_to_array,bar_to_matrix2
+from utils import get_meta,csv_to_array,midi_to_array,bar_to_matrix2,set_labels
 from feature_defining import bar_to_contour, contour_to_label
 from sklearn.preprocessing import MultiLabelBinarizer
+from plotting import plot_recall_f1score, plot_val_loss
 import matplotlib.pyplot as plt
 
 midifilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/prime_midi'))
@@ -99,7 +100,8 @@ valid_label=np.array(all_labels[1500:1700])
 test_matrix=np.array(all_matrix[1700:])
 test_label=np.array(all_labels[1700:])
 mlb=MultiLabelBinarizer()
-mlb.fit([['no skills','resting','repeating','up_steping','down_steping','up_leaping','down_leaping','steping_twisting','leaping_twisting','fast_rhythm','One_rhythm','triplet','staccato','continuing_rhythm']])
+labels=set_labels()
+mlb.fit(labels)
 train_label2=mlb.transform(train_label)
 valid_label2=mlb.transform(valid_label)
 test_label2=mlb.transform(test_label)
@@ -115,13 +117,15 @@ classifier.compile(loss=keras.losses.BinaryCrossentropy(
       from_logits=False, label_smoothing=0.1,
       name='binary_crossentropy'
   ), optimizer='adam', metrics=['accuracy',recall,precision,f1score])
-classifier.fit(
+hist=classifier.fit(
       train_matrix,train_label2,batch_size=32,
       epochs=50,
       validation_data=(valid_matrix,valid_label2)
   ,verbose=2, callbacks=callbacks
 )
-
+#plotting
+plot_val_loss(hist)
+plot_recall_f1score(hist)
 # testing
 
 testresult=classifier.predict(test_matrix)

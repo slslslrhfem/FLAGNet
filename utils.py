@@ -131,3 +131,29 @@ def plot_bar(bar_matrix_list2):
     cax.set_frame_on(False)
     plt.colorbar(orientation='vertical')
     plt.show()
+def set_labels():
+  labels=[]
+  skills_pitch=['repeating','up_steping','down_steping','up_leaping','down_leaping','steping_twisting','leaping_twisting','dummy']
+  skills_timing=['resting','fast_rhythm','dummy']
+  skills_triplet=['triplet','dummy']
+  skills_one_rhythm=['One_rhythm','dummy']
+  skills_staccato=['staccato','continuing_rhythm','dummy']
+  for pitch in skills_pitch:
+    for timing in skills_timing:
+      for triplet in skills_triplet:
+        for one_rhythm in skills_one_rhythm:
+          for staccato in skills_staccato:
+            label_tuple=[]
+            if pitch is not 'dummy':
+              label_tuple.append(pitch)
+            if timing is not 'dummy':
+              label_tuple.append(timing)
+            if triplet is not 'dummy':
+              label_tuple.append(triplet)
+            if one_rhythm is not 'dummy':
+              label_tuple.append(one_rhythm)
+            if staccato is not 'dummy':
+              label_tuple.append(staccato)
+            label_tuple=tuple(label_tuple)
+            labels.append(label_tuple)
+  return labels

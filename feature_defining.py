@@ -276,7 +276,7 @@ def contour_to_label(contour):
         if (is_triplet(contour[3], exception_range2)):
             labels.append('triplet')
 
-        if (is_staccato(contour[1], exception_range2)):
+        if (is_staccato(contour[4], exception_range2)):
             labels.append('staccato')
 
         if (is_continuing_rhythm(contour[0])):

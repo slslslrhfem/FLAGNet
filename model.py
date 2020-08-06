@@ -46,7 +46,7 @@ def make_model():
     pooling_layer3 = keras.layers.AvgPool2D(padding='same',pool_size=(8, 8), data_format="channels_first")(block_7)
     last_layer = keras.layers.Flatten()(pooling_layer3)
     last_layer = keras.layers.Dropout(0.4)(last_layer)
-    last_layer = keras.layers.Dense(14, activation="sigmoid")(last_layer)
+    last_layer = keras.layers.Dense(13, activation="sigmoid")(last_layer)
     return keras.models.Model(inputs=input_layer, outputs=last_layer)
 def make_classifier():
   #with tf.device('/gpu:0'):
@@ -63,7 +63,7 @@ def make_classifier():
     classifier.add(layers.MaxPooling2D(pool_size=(2, 2)))
     classifier.add(layers.Flatten())
     classifier.add(layers.Dropout(0.25))
-    classifier.add(Dense(14, activation='sigmoid'))
+    classifier.add(Dense(13, activation='sigmoid'))
     return classifier
 
 
