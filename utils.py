@@ -2,6 +2,9 @@ import json
 import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
+import copy
+from sklearn.preprocessing import MultiLabelBinarizer
+
 def get_meta(filename):
   with open('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/descriptor/'+filename) as json_file:
     meta_data = json.load(json_file)
@@ -157,3 +160,45 @@ def set_labels():
             label_tuple=tuple(label_tuple)
             labels.append(label_tuple)
   return labels
+def get_tag_results(testresult,test_label2):
+  mlb = MultiLabelBinarizer()
+  labels = set_labels()
+  mlb.fit(labels)
+  classnum={}
+  testnum={}
+  resultmat=[]
+  bestmat=[]
+  for i in range(len(testresult)):
+    eval_result=[0 for i in range(13)]
+    best_result=[0 for i in range(13)]
+    class_num=np.count_nonzero(test_label2[i]==1)+1
+    classidx=(-testresult[i]).argsort()[:class_num]
+    for k,j in enumerate(classidx):
+      if (k==0):
+        best_result[j]=1
+      eval_result[j]=1
+    resultmat.append(eval_result)
+    bestmat.append(best_result)
+    test_result2=copy.deepcopy(testresult)
+    test_result2[np.where(test_result2>0.30)]=1
+    test_result2[np.where(test_result2<=0.30)]=0
+  resultmat=np.array(resultmat)
+  bestmat=np.array(bestmat)
+  testidx=mlb.inverse_transform(resultmat)
+  classidx=mlb.inverse_transform(test_label2)
+  testidx2=mlb.inverse_transform(test_result2)
+  bestidx=mlb.inverse_transform(bestmat)
+  for i in range(len(testidx)):
+    #print(bestidx[i],testidx2[i],testidx[i], classidx[i],i) # 값이 0.30 이상인 set, 원래 Label보다 1개 많이 보여주는 내림차순 set, 원래 label set 순서이다.
+    for classes in classidx[i]:
+      if (classes not in classnum):
+        classnum[classes]=1
+      else:
+        classnum[classes]+=1
+    for classes in testidx[i]:
+      if (classes not in testnum):
+        testnum[classes]=1
+      else:
+        testnum[classes]+=1
+  print(classnum, testnum)
+  return bestidx, testidx2, testidx, classidx#가장 높은거, 0.30이상인 set, 원래의 Label보다 1개 많이 보여주는 내림차순, 원래 Label
