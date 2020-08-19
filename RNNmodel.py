@@ -21,20 +21,20 @@ def RNN_training(classifier,bar_matrix_list3):
         nowbars = classifier.predict(nowmat.reshape(len(nowmat), 24, 24, 1))
         for j, bars in enumerate(nowbars):
             if (j == len(nowbars) - 1):
-                if (i > 4500):
+                if (i > 50):
                     RNNy_test.append(np.argmax(bars))
                 else:
                     RNNy_train.append(np.argmax(bars))
             else:
                 nowseq.append(np.argmax(bars))
-        if (i > 4500):
+        if (i > 50):
             RNNx_test.append(nowseq)
         else:
             RNNx_train.append(nowseq)
     RNNy_test = to_categorical(np.array(RNNy_test))
     RNNy_train = to_categorical(np.array(RNNy_train))
     # fix random seed for reproducibility
-    numpy.random.seed(7)
+    np.random.seed(7)
     top_words = 13
     # truncate and pad input sequences
     max_review_length = 0

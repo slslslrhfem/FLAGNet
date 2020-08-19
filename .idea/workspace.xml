@@ -1,15 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="7655fe9e-ad22-4a24-bb32-70d5953183b6" name="Default Changelist" comment="Importing gaborvecsei's CDCGAN model.">
-      <change afterPath="$PROJECT_DIR$/RNNmodel.py" afterDir="false" />
+    <list default="true" id="7655fe9e-ad22-4a24-bb32-70d5953183b6" name="Default Changelist" comment="Importing gaborvecsei's CDCGAN model. and refactoring from ipynb.&#10;It contains changing form of image,&#10;Gan Debugging,&#10;RNN implementation.">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cdcgan/cdcgan_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/cdcgan/cdcgan_models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cdcgan/cdcgan_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/cdcgan/cdcgan_utils.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/RNNmodel.py" beforeDir="false" afterPath="$PROJECT_DIR$/RNNmodel.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/models/deeperppddbest.h5" beforeDir="false" afterPath="$PROJECT_DIR$/models/deeperppddbest.h5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -19,11 +15,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2456">
-              <caret line="251" selection-start-line="251" selection-end-line="251" />
+            <state relative-caret-position="290">
+              <caret line="254" column="19" selection-start-line="254" selection-start-column="19" selection-end-line="254" selection-end-column="19" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
               </folding>
@@ -49,11 +45,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/RNNmodel.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1273">
-              <caret line="67" column="41" selection-start-line="67" selection-start-column="41" selection-end-line="67" selection-end-column="41" />
+            <state relative-caret-position="-318">
+              <caret line="34" column="31" selection-start-line="34" selection-start-column="31" selection-end-line="34" selection-end-column="31" />
               <folding>
                 <element signature="e#0#18#0" expanded="true" />
               </folding>
@@ -139,10 +135,10 @@
         <option value="$PROJECT_DIR$/cdcgan/cdcgan_train.py" />
         <option value="$PROJECT_DIR$/model.py" />
         <option value="$PROJECT_DIR$/utils.py" />
-        <option value="$PROJECT_DIR$/RNNmodel.py" />
         <option value="$PROJECT_DIR$/cdcgan/cdcgan_utils.py" />
         <option value="$PROJECT_DIR$/cdcgan/cdcgan_models.py" />
         <option value="$PROJECT_DIR$/main.py" />
+        <option value="$PROJECT_DIR$/RNNmodel.py" />
       </list>
     </option>
   </component>
@@ -164,32 +160,6 @@
             <path>
               <item name="PPDD" type="b2602c69:ProjectViewProjectNode" />
               <item name="PPDD" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="PPDD" type="b2602c69:ProjectViewProjectNode" />
-              <item name="PPDD" type="462c0819:PsiDirectoryNode" />
-              <item name="cdcgan" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="PPDD" type="b2602c69:ProjectViewProjectNode" />
-              <item name="PPDD" type="462c0819:PsiDirectoryNode" />
-              <item name="cdcgan" type="462c0819:PsiDirectoryNode" />
-              <item name="GANresult" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="PPDD" type="b2602c69:ProjectViewProjectNode" />
-              <item name="PPDD" type="462c0819:PsiDirectoryNode" />
-              <item name="cdcgan" type="462c0819:PsiDirectoryNode" />
-              <item name="GANresult" type="462c0819:PsiDirectoryNode" />
-              <item name="images" type="462c0819:PsiDirectoryNode" />
-            </path>
-            <path>
-              <item name="PPDD" type="b2602c69:ProjectViewProjectNode" />
-              <item name="PPDD" type="462c0819:PsiDirectoryNode" />
-              <item name="cdcgan" type="462c0819:PsiDirectoryNode" />
-              <item name="GANresult" type="462c0819:PsiDirectoryNode" />
-              <item name="images" type="462c0819:PsiDirectoryNode" />
-              <item name="generated_mnist_images_per_epoch" type="462c0819:PsiDirectoryNode" />
             </path>
           </expand>
           <select />
@@ -289,7 +259,14 @@
       <option name="project" value="LOCAL" />
       <updated>1597212091140</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="Importing gaborvecsei's CDCGAN model. and refactoring from ipynb.&#10;It contains changing form of image,&#10;Gan Debugging,&#10;RNN implementation.">
+      <created>1597823476366</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1597823476366</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TodoView">
@@ -334,11 +311,38 @@
       </list>
     </option>
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State>
+              <option name="RECENTLY_FILTERED_USER_GROUPS">
+                <collection />
+              </option>
+              <option name="RECENTLY_FILTERED_BRANCH_GROUPS">
+                <collection />
+              </option>
+              <option name="COLUMN_ORDER">
+                <list>
+                  <option value="0" />
+                  <option value="1" />
+                  <option value="2" />
+                  <option value="3" />
+                </list>
+              </option>
+            </State>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="small data" />
     <MESSAGE value="staccato feature change and add plot and so on.." />
     <MESSAGE value="Importing gaborvecsei's CDCGAN model." />
-    <option name="LAST_COMMIT_MESSAGE" value="Importing gaborvecsei's CDCGAN model." />
+    <MESSAGE value="Importing gaborvecsei's CDCGAN model. and refactoring from ipynb.&#10;It contains changing form of image,&#10;Gan Debugging,&#10;RNN implementation." />
+    <option name="LAST_COMMIT_MESSAGE" value="Importing gaborvecsei's CDCGAN model. and refactoring from ipynb.&#10;It contains changing form of image,&#10;Gan Debugging,&#10;RNN implementation." />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/cdcgan/cdcgan_train.py">
@@ -374,16 +378,6 @@
           <caret line="8" column="20" selection-start-line="8" selection-start-column="20" selection-end-line="8" selection-end-column="20" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/RNNmodel.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1273">
-          <caret line="67" column="41" selection-start-line="67" selection-start-column="41" selection-end-line="67" selection-end-column="41" />
-          <folding>
-            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>
@@ -424,10 +418,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2456">
-          <caret line="251" selection-start-line="251" selection-end-line="251" />
+        <state relative-caret-position="290">
+          <caret line="254" column="19" selection-start-line="254" selection-start-column="19" selection-end-line="254" selection-end-column="19" />
           <folding>
             <element signature="e#0#17#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/RNNmodel.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-318">
+          <caret line="34" column="31" selection-start-line="34" selection-start-column="31" selection-end-line="34" selection-end-column="31" />
+          <folding>
+            <element signature="e#0#18#0" expanded="true" />
           </folding>
         </state>
       </provider>

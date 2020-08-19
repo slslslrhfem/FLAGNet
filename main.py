@@ -137,7 +137,7 @@ print(best)
 
 
 BATCH_SIZE = 32
-EPOCHS = 50
+EPOCHS = 1
 
 # Load & Prepare MNIST
 trainX=train_matrix.reshape((1500,24,24))
