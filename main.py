@@ -4,6 +4,7 @@ from keras import backend as K
 from keras import utils as keras_utils
 from keras import datasets
 from swiss_army_tensorboard import tfboard_loggers
+from RNNmodel import RNN_training
 import keras
 import os
 import pandas
@@ -16,7 +17,7 @@ import pretty_midi
 import mido
 from tqdm import tqdm
 from model import f1score,precision,make_classifier,make_model,recall
-from utils import get_meta,csv_to_array,midi_to_array,bar_to_matrix2,set_labels,get_tag_results
+from utils import get_meta,csv_to_array,midi_to_array,bar_to_matrix2,bar_to_matrix3,set_labels,get_tag_results,blur_image
 from feature_defining import bar_to_contour, contour_to_label
 from sklearn.preprocessing import MultiLabelBinarizer
 from plotting import plot_recall_f1score, plot_val_loss
@@ -56,14 +57,14 @@ starting_number_list[i] means ith music's first note starting time.
 
 #bar_list to bar_matrix_list
 #bar_matrix_list=copy.deepcopy(bar_list)
-bar_matrix_list2=copy.deepcopy(bar_list)
-for i,songs in enumerate(bar_matrix_list2):
+bar_matrix_list3=copy.deepcopy(bar_list)
+for i,songs in enumerate(bar_matrix_list3):
   for j,bar in enumerate(songs):
     #print(one_bar_number_list[i],starting_number_list[i])
     #matrix=bar_to_matrix1(bar,one_bar_number_list[i],starting_number_list[i],j)
     # bar_matrix_list[i][j]=matrix
-    matrix2=bar_to_matrix2(bar,one_bar_number_list[i],starting_number_list[i],j)
-    bar_matrix_list2[i][j] = matrix2
+    matrix3=bar_to_matrix3(bar,one_bar_number_list[i],starting_number_list[i],j)
+    bar_matrix_list3[i][j] = matrix3
 
 #아래의 코드는 bar를 plot할때 사용. 필요하면 주석을 풀면 된다.
 #plot_bar(bar_matrix_list2[0][0])
@@ -88,11 +89,10 @@ for songs in bar_label_list:
     label=np.array(label)
     all_labels.append(label)
 bar_label_list=[]#램 터짐
-for songs in bar_matrix_list2:
+for songs in bar_matrix_list3:
   for matrix in songs:
-    matrix=matrix.reshape(112,96,1)
+    matrix=matrix.reshape(24,24,1)
     all_matrix.append(matrix)
-bar_matrix_list2=[]#이거도
 
 train_matrix=np.array(all_matrix[:1500])
 train_label=np.array(all_labels[:1500])
@@ -136,28 +136,35 @@ best=get_tag_results(testresult,test_label2)[0]
 print(best)
 
 
-BATCH_SIZE = 128
-EPOCHS = 100
+BATCH_SIZE = 32
+EPOCHS = 50
 
 # Load & Prepare MNIST
-X_train=train_matrix.reshape((1500,112,96))
+trainX=train_matrix.reshape((1500,24,24))
 testresult=classifier.predict(train_matrix)
-y_train=np.array(get_tag_results(testresult,train_label2)[0]).reshape((1500,))
-X_train = cdcgan_utils.transform_images(X_train)
-X_train = X_train[:, :, :, None]
+trainy=np.array(get_tag_results(testresult,train_label2)[0]).reshape((1500,))
 
 
 
 encoder = LabelEncoder()
 
 # X_train데이터를 이용 피팅하고 라벨숫자로 변환한다
-encoder.fit(y_train)
-y_train = encoder.transform(y_train)
-print(y_train)
-y_train=np.array(y_train)
+encoder.fit(trainy)
+trainy = encoder.transform(trainy)
+trainy=np.array(trainy)
 
+#사진에 filter를 적용한다.
+blur_trainX=copy.deepcopy(trainX)
+for i,matrix in enumerate(trainX):
+  blur_trainX[i]=blur_image(matrix)
+trainX=blur_trainX
+
+X_train=trainX
+y_train=trainy
+X_train = cdcgan_utils.transform_images(X_train)
+X_train = X_train[:, :, :, None]
 # Create the models
-y_train = keras_utils.to_categorical(y_train, 100)
+y_train = keras_utils.to_categorical(y_train, 13)
 
 print("Generator:")
 G = cdcgan_models.generator_model()
@@ -171,18 +178,21 @@ print("Combined:")
 GD = cdcgan_models.generator_containing_discriminator(G, D)
 GD.summary()
 
-optimizer = optimizers.Adam(0.0002, 0.5)
+optimizer = optimizers.Adam(0.0003, 0.5)
+optimizer2 = optimizers.Adam(0.0001, 0.5)
+optimizer3 = optimizers.Adam(0.0002, 0.5)
+
 
 G.compile(loss='binary_crossentropy', optimizer=optimizer)
-GD.compile(loss='binary_crossentropy', optimizer=optimizer)
+GD.compile(loss='binary_crossentropy', optimizer=optimizer3)
 D.trainable = True
-D.compile(loss='binary_crossentropy', optimizer=optimizer)
+D.compile(loss='binary_crossentropy', optimizer=optimizer2)
 
 # Setup Tensorboard loggers
 
-tfboard_loggers.TFBoardModelGraphLogger.log_graph("../models/logs", K.get_session())
-loss_logger = tfboard_loggers.TFBoardScalarLogger("../models/logs/loss")
-image_logger = tfboard_loggers.TFBoardImageLogger("../models/logs/generated_images")
+tfboard_loggers.TFBoardModelGraphLogger.log_graph("cdcgan/GANresult/models/logs", K.get_session())
+loss_logger = tfboard_loggers.TFBoardScalarLogger("cdcgan/GANresult/models/logs/loss")
+image_logger = tfboard_loggers.TFBoardImageLogger("cdcgan/GANresult/models/logs/generated_images")
 
 # Model Training
 
@@ -198,7 +208,7 @@ for epoch in range(EPOCHS):
     d_losses_for_epoch = []
 
     for i in range(nb_of_iterations_per_epoch):
-        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 100))
+        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 13))
 
         image_batch = X_train[i * BATCH_SIZE:(i + 1) * BATCH_SIZE]
         label_batch = y_train[i * BATCH_SIZE:(i + 1) * BATCH_SIZE]
@@ -209,7 +219,7 @@ for epoch in range(EPOCHS):
             image_grid = cdcgan_utils.generate_mnist_image_grid(G,
                                                                 title="Epoch {0}, iteration {1}".format(epoch,
                                                                                                         iteration))
-            cdcgan_utils.save_generated_image(image_grid, epoch, i, "../images/generated_mnist_images_per_iteration")
+            cdcgan_utils.save_generated_image(image_grid, epoch, i, "cdcgan/GANresult/images/generated_mnist_images_per_iteration")
             image_logger.log_images("generated_mnist_images_per_iteration", [image_grid], iteration)
 
         X = np.concatenate((image_batch, generated_images))
@@ -220,7 +230,7 @@ for epoch in range(EPOCHS):
         d_losses_for_epoch.append(D_loss)
         loss_logger.log_scalar("discriminator_loss", D_loss, iteration)
 
-        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 100))
+        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 13))
         D.trainable = False
         G_loss = GD.train_on_batch([noise, label_batch], [1] * BATCH_SIZE)
         D.trainable = True
@@ -233,11 +243,14 @@ for epoch in range(EPOCHS):
 
     # Save a generated image for every epoch
     image_grid = cdcgan_utils.generate_mnist_image_grid(G, title="Epoch {0}".format(epoch))
-    cdcgan_utils.save_generated_image(image_grid, epoch, 0, "../images/generated_mnist_images_per_epoch")
+    cdcgan_utils.save_generated_image(image_grid, epoch, 0, "cdcgan/GANresult/images/generated_mnist_images_per_epoch")
     image_logger.log_images("generated_mnist_images_per_epoch", [image_grid], epoch)
 
     pbar.close()
     print("D loss: {0}, G loss: {1}".format(np.mean(d_losses_for_epoch), np.mean(g_losses_for_epoch)))
 
-    G.save_weights("../models/weights/generator.h5")
-    D.save_weights("../models/weights/discriminator.h5")
+    G.save_weights("cdcgan/GANresult/models/weights/generator.h5")
+    D.save_weights("cdcgan/GANresult/models/weights/discriminator.h5")
+
+#RNN implementation
+RNN_training(classifier,bar_matrix_list3)

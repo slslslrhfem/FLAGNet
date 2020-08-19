@@ -4,6 +4,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import copy
 from sklearn.preprocessing import MultiLabelBinarizer
+import numpy as np
+import scipy as sp
+import scipy.ndimage
 
 def get_meta(filename):
   with open('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/descriptor/'+filename) as json_file:
@@ -104,18 +107,31 @@ def bar_to_matrix2(bar, one_bar_number, starting_number, i):
     return init
 
 
-def bar_to_matrix3(bar, one_bar_number, starting_number, i):
-    # 일단 3은 쓰지 맙시다
-    # Duration에 따라 Plot함과 동시에 가장 높은음과 낮은음을 고려해서 실제 DAW와 같이 Plot한다.
-    # 8/6박이면 one_bar_number가 8이다. 그러면 바 1개당 무조건 12개 처리하는거로 한다.
-    init = np.zeros((112, 96))  # 112는 Note의 수(감으로 써둠.. 나중에 전체 데이터로 할때 수정 가능성 있음 그런데 Shift를 잘 이용하면 96*96도 가능해보임.)
-    minimum_size = one_bar_number / 96
-    zero_time = starting_number + one_bar_number * i
-    for j, lists in enumerate(bar):
-        # lists[0]은 시간, lists[1]은 Note 높이, lists[3]은 Duration.
-        point = int((nearest_time(lists[0], minimum_size) - zero_time) / minimum_size)
-        init[int(lists[1])][point] = lists[3]
-    return init
+def bar_to_matrix3(bar,one_bar_number,starting_number,i):
+  #Duration에 따라 Ploting한다.
+  #size를 상당히 작게 잡는다.
+  #8/6박이면 one_bar_number가 8이다. 그러면 바 1개당 무조건 12개 처리하는거로 한다.
+
+  init=np.zeros((24,24))#112는 Note의 수(감으로 써둠.. 나중에 전체 데이터로 할때 수정 가능성 있음 그런데 Shift를 잘 이용하면 96*96도 가능해보임.)
+  minimum_size=one_bar_number/24
+  zero_time=starting_number+one_bar_number*i
+  min_height=500
+  for lists in bar:
+    if min_height>lists[1]:
+      min_height=lists[1]
+  for j,lists in enumerate(bar):
+    #lists[0]은 시간, lists[1]은 Note 높이, lists[3]은 Duration.
+    point=int((nearest_time(lists[0],minimum_size)-zero_time)/minimum_size)
+    length=int(round(lists[3]/minimum_size))
+    if (length>3):
+      length=length-1#여러번 두두두 치는 음을 구별하기 위함
+    if (point+length>23):
+      length=23-point # 한 음이 2Bar에 걸쳐있는 경우 Bar 뒤쪽의 음을 무시한다.
+    height=lists[1]-min_height
+    while(height>23):
+      height=height-12
+    init[23-int(height)][point:point+length]+=1
+  return init
 
 def plot_bar(bar_matrix_list2):
     H = bar_matrix_list2[0][0]
@@ -202,3 +218,26 @@ def get_tag_results(testresult,test_label2):
         testnum[classes]+=1
   print(classnum, testnum)
   return bestidx, testidx2, testidx, classidx#가장 높은거, 0.30이상인 set, 원래의 Label보다 1개 많이 보여주는 내림차순, 원래 Label
+def blur_image(matrix):
+  sigma_y = 1.0
+  sigma_x = 1.0
+  inputmat=matrix
+  """
+  # Plot input array
+  plt.imshow(inputmat, cmap='Blues', interpolation='nearest')
+  plt.xlabel("$x$")
+  plt.ylabel("$y$")
+  plt.savefig("array.png")
+  """
+  # Apply gaussian filter
+  sigma = [sigma_y, sigma_x]
+  y = sp.ndimage.filters.gaussian_filter(inputmat, sigma, mode='constant')
+  """
+  # Display filtered array
+  plt.imshow(y, cmap='Blues', interpolation='nearest')
+  plt.xlabel("$x$")
+  plt.ylabel("$y$")
+  plt.title("$\sigma_x = " + str(sigma_x) + "\quad \sigma_y = " + str(sigma_y) + "$")
+  plt.savefig("smooth_array_" + str(sigma_x) + "_" + str(sigma_y) + ".png")
+  """
+  return y

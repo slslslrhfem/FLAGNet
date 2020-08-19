@@ -29,13 +29,13 @@ def generate_noise(shape: tuple):
 
 
 def generate_condition_embedding(label: int, nb_of_label_embeddings: int):
-    label_embeddings = np.zeros((nb_of_label_embeddings, 100))
+    label_embeddings = np.zeros((nb_of_label_embeddings, 13))
     label_embeddings[:, label] = 1
     return label_embeddings
 
 
 def generate_images(generator, nb_images: int, label: int):
-    noise = generate_noise((nb_images, 100))
+    noise = generate_noise((nb_images, 13))
     label_batch = generate_condition_embedding(label, nb_images)
     generated_images = generator.predict([noise, label_batch], verbose=0)
     return generated_images
@@ -45,7 +45,7 @@ def generate_mnist_image_grid(generator, title: str = "Generated images"):
     generated_images = []
 
     for i in range(10):
-        noise = generate_noise((10, 100))
+        noise = generate_noise((10, 13))
         label_input = generate_condition_embedding(i, 10)
         gen_images = generator.predict([noise, label_input], verbose=0)
         generated_images.extend(gen_images)
@@ -79,10 +79,11 @@ def save_generated_image(image, epoch, iteration, folder_path):
 
 def transform_images(images: np.ndarray):
     """
-    Transform images to [-1, 1]
+    [0,max]Transform images to [-1, 1]
     """
+    max_val=np.max(images)
 
-    #images = (images.astype(np.float32) - 127.5) / 127.5
+    images = (images.astype(np.float32) - (max_val/2)) / (max_val/2)
     return images
 
 
@@ -91,8 +92,8 @@ def inverse_transform_images(images: np.ndarray):
     From the [-1, 1] range transform the images back to [0, 255]
     """
 
-    #images = images * 127.5 + 127.5
-    #images = images.astype(np.uint8)
+    images = images * 127.5 + 127.5
+    images = images.astype(np.uint8)
     return images
 
 

@@ -27,7 +27,7 @@ def residual_block(filter, input, add=True):
     return layer_3
 def make_model():
   #with tf.device('/gpu:0'):
-    input_layer = keras.Input(shape=(112, 96, 1))
+    input_layer = keras.Input(shape=(24, 24, 1))
     layer_1 = keras.layers.Conv2D(filters=64, kernel_size=(7, 7), padding='same', data_format="channels_first")(input_layer)
     block_1 = residual_block(64, layer_1)
     block_2 = residual_block(64, block_1)
@@ -53,7 +53,7 @@ def make_classifier():
     classifier = Sequential()
     classifier.add(layers.Conv2D(128, kernel_size=(5, 5), strides=(1, 1), padding='same',
                   activation='relu',
-                  input_shape=(112,96,1)))
+                  input_shape=(24,24,1)))
     classifier.add(layers.BatchNormalization())
     classifier.add(layers.advanced_activations.LeakyReLU(alpha=0.01))
     classifier.add(layers.Conv2D(128, (2, 2), activation='relu', padding='same'))

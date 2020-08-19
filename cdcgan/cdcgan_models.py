@@ -8,20 +8,20 @@ ACTIVATION = layers.Activation("tanh")
 
 def generator_model():
     # Prepare noise input
-    input_z = layers.Input((100,))
+    input_z = layers.Input((13,))
     dense_z_1 = layers.Dense(1024)(input_z)
     act_z_1 = ACTIVATION(dense_z_1)
-    dense_z_2 = layers.Dense(128 * 28 * 24)(act_z_1)
+    dense_z_2 = layers.Dense(128 * 6 * 6)(act_z_1)
     bn_z_1 = layers.BatchNormalization()(dense_z_2)
-    reshape_z = layers.Reshape((28, 24, 128), input_shape=(128 * 28 * 24,))(bn_z_1)
+    reshape_z = layers.Reshape((6, 6, 128), input_shape=(128 * 6 * 6,))(bn_z_1)
 
     # Prepare Conditional (label) input
-    input_c = layers.Input((100,))
+    input_c = layers.Input((13,))
     dense_c_1 = layers.Dense(1024)(input_c)
     act_c_1 = ACTIVATION(dense_c_1)
-    dense_c_2 = layers.Dense(128 * 28 * 24)(act_c_1)
+    dense_c_2 = layers.Dense(128 * 6 * 6)(act_c_1)
     bn_c_1 = layers.BatchNormalization()(dense_c_2)
-    reshape_c = layers.Reshape((28, 24, 128), input_shape=(128 * 28 * 24,))(bn_c_1)
+    reshape_c = layers.Reshape((6, 6, 128), input_shape=(128 * 6 * 6,))(bn_c_1)
 
     # Combine input source
     concat_z_c = layers.Concatenate()([reshape_z, reshape_c])
@@ -38,7 +38,7 @@ def generator_model():
 
 
 def discriminator_model():
-    input_gen_image = layers.Input((112, 96, 1))
+    input_gen_image = layers.Input((24, 24, 1))
     conv_1_image = layers.Conv2D(64, (5, 5), padding='same')(input_gen_image)
     act_1_image = ACTIVATION(conv_1_image)
     pool_1_image = layers.MaxPooling2D(pool_size=(2, 2))(act_1_image)
@@ -46,12 +46,12 @@ def discriminator_model():
     act_2_image = ACTIVATION(conv_2_image)
     pool_2_image = layers.MaxPooling2D(pool_size=(2, 2))(act_2_image)
 
-    input_c = layers.Input((100,))
+    input_c = layers.Input((13,))
     dense_1_c = layers.Dense(1024)(input_c)
     act_1_c = ACTIVATION(dense_1_c)
-    dense_2_c = layers.Dense(26 * 22 * 128)(act_1_c)
+    dense_2_c = layers.Dense(4 * 4 * 128)(act_1_c)
     bn_c = layers.BatchNormalization()(dense_2_c)
-    reshaped_c = layers.Reshape((26, 22, 128))(bn_c)
+    reshaped_c = layers.Reshape((4, 4, 128))(bn_c)
 
     concat = layers.Concatenate()([pool_2_image, reshaped_c])
 
@@ -65,8 +65,8 @@ def discriminator_model():
 
 
 def generator_containing_discriminator(g, d):
-    input_z = layers.Input((100,))
-    input_c = layers.Input((100,))
+    input_z = layers.Input((13,))
+    input_c = layers.Input((13,))
     gen_image = g([input_z, input_c])
     d.trainable = False
     is_real = d([gen_image, input_c])
