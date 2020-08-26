@@ -153,7 +153,7 @@ def plot_bar(bar_matrix_list2):
 def set_labels():
   labels=[]
   skills_pitch=['repeating','up_steping','down_steping','up_leaping','down_leaping','steping_twisting','leaping_twisting','dummy']
-  skills_timing=['resting','fast_rhythm','dummy']
+  skills_timing=['fast_rhythm','dummy']
   skills_triplet=['triplet','dummy']
   skills_one_rhythm=['One_rhythm','dummy']
   skills_staccato=['staccato','continuing_rhythm','dummy']
@@ -185,8 +185,8 @@ def get_tag_results(testresult,test_label2):
   resultmat=[]
   bestmat=[]
   for i in range(len(testresult)):
-    eval_result=[0 for i in range(13)]
-    best_result=[0 for i in range(13)]
+    eval_result=[0 for i in range(12)]
+    best_result=[0 for i in range(12)]
     class_num=np.count_nonzero(test_label2[i]==1)+1
     classidx=(-testresult[i]).argsort()[:class_num]
     for k,j in enumerate(classidx):

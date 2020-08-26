@@ -1,7 +1,9 @@
 import matplotlib
 from sklearn.preprocessing import LabelEncoder
 from keras import backend as K
+from sklearn.preprocessing import LabelBinarizer
 from keras import utils as keras_utils
+from Decoding import generation_info
 from keras import datasets
 from swiss_army_tensorboard import tfboard_loggers
 from RNNmodel import RNN_training
@@ -10,6 +12,7 @@ import os
 import pandas
 import numpy as np
 from keras import optimizers
+from midiutil.MidiFile import MIDIFile
 from cdcgan import cdcgan_models, cdcgan_utils
 from keras.callbacks import ModelCheckpoint
 import copy
@@ -21,23 +24,24 @@ from utils import get_meta,csv_to_array,midi_to_array,bar_to_matrix2,bar_to_matr
 from feature_defining import bar_to_contour, contour_to_label
 from sklearn.preprocessing import MultiLabelBinarizer
 from plotting import plot_recall_f1score, plot_val_loss
+import cv2
 
-midifilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/prime_midi'))
-jsonfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/descriptor'))
-csvfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/prime_csv'))
+midifilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_large/prime_midi'))
+jsonfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_large/descriptor'))
+csvfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_large/prime_csv'))
 midilist=[]
 csvlist=[]
 jsonlist=[]
 prettymidilist=[]
 
 for filenames in tqdm(midifilenames,position=0):
-  midi_path='PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/prime_midi/'+filenames
+  midi_path='PPDD-Sep2018_sym_mono_large/prime_midi/'+filenames
   mid = mido.MidiFile(midi_path, clip=True)
   midilist.append(mid)
   prettymid=pretty_midi.PrettyMIDI(midi_path)
   prettymidilist.append(prettymid)
 for filenames in tqdm(csvfilenames,position=0):
-  csv_path='PPDD-Sep2018_sym_mono_small/PPDD-Sep2018_sym_mono_small/prime_csv/'+filenames
+  csv_path='PPDD-Sep2018_sym_mono_large/prime_csv/'+filenames
   csv = pandas.read_csv(csv_path)
   csvlist.append(csv)
 for filenames in tqdm(jsonfilenames,position=0):
@@ -66,6 +70,19 @@ for i,songs in enumerate(bar_matrix_list3):
     matrix3=bar_to_matrix3(bar,one_bar_number_list[i],starting_number_list[i],j)
     bar_matrix_list3[i][j] = matrix3
 
+bar_updown_list=copy.deepcopy(bar_list)
+for i,songs in enumerate(bar_list):
+  for j,bar in enumerate(songs):
+    if (j==len(songs)-1):
+      updown_label='final'
+    elif(len(bar_list[i][j])==0 or len(bar_list[i][j+1])==0):
+      updown_label='meanless'
+    else:
+      if(bar_list[i][j][len(bar_list[i][j])-1][1]<=bar_list[i][j+1][0][1]):
+        updown_label='up'
+      else:
+        updown_label='down'
+    bar_updown_list[i][j]=updown_label
 #아래의 코드는 bar를 plot할때 사용. 필요하면 주석을 풀면 된다.
 #plot_bar(bar_matrix_list2[0][0])
 
@@ -83,6 +100,7 @@ for i,songs in enumerate(bar_list):
 """
 all_matrix=[]
 all_labels=[]
+all_updown_labels=[]
 num_data=len(all_matrix)
 for songs in bar_label_list:
   for label in songs:
@@ -93,25 +111,39 @@ for songs in bar_matrix_list3:
   for matrix in songs:
     matrix=matrix.reshape(24,24,1)
     all_matrix.append(matrix)
-
-train_matrix=np.array(all_matrix[:1500])
-train_label=np.array(all_labels[:1500])
-valid_matrix=np.array(all_matrix[1500:1700])
-valid_label=np.array(all_labels[1500:1700])
-test_matrix=np.array(all_matrix[1700:])
-test_label=np.array(all_labels[1700:])
+for songs in bar_updown_list:
+  for label in songs:
+    all_updown_labels.append(label)
+updownle=LabelBinarizer()
+updownle.fit(['up','down','final','meanless'])
+updown_label=updownle.transform(np.array(all_updown_labels))
+tot_len=len(all_matrix)
+train_matrix=np.array(all_matrix[:int(0.8*tot_len)])
+train_label=np.array(all_labels[:int(0.8*tot_len)])
+valid_matrix=np.array(all_matrix[int(0.8*tot_len):])
+valid_label=np.array(all_labels[int(0.8*tot_len):])
+test_matrix=np.array(all_matrix[int(0.95*tot_len):])
+test_label=np.array(all_labels[int(0.95*tot_len):])
 mlb=MultiLabelBinarizer()
 labels=set_labels()
 mlb.fit(labels)
 train_label2=mlb.transform(train_label)
 valid_label2=mlb.transform(valid_label)
 test_label2=mlb.transform(test_label)
+train_updown_label=updown_label[:int(0.8*tot_len)]
+valid_updown_label=updown_label[int(0.8*tot_len):]
+test_updown_label=updown_label[int(0.95*tot_len):]
 
 model_path = 'models/deeperppddbest.h5'
 
 cb_checkpoint = ModelCheckpoint(filepath=model_path, monitor='val_accuracy',
                                 verbose=1, save_best_only=True)
 callbacks = [cb_checkpoint]
+model_path = 'models/' + 'updown.h5'
+
+cb_checkpoint = ModelCheckpoint(filepath=model_path, monitor='val_accuracy',
+                                verbose=1, save_best_only=True)
+updown_callbacks=[cb_checkpoint]
 
 classifier=make_model()
 classifier.compile(loss=keras.losses.BinaryCrossentropy(
@@ -120,14 +152,29 @@ classifier.compile(loss=keras.losses.BinaryCrossentropy(
   ), optimizer='adam', metrics=['accuracy',recall,precision,f1score])
 hist=classifier.fit(
       train_matrix,train_label2,batch_size=32,
-      epochs=10,
+      epochs=5,
       validation_data=(valid_matrix,valid_label2)
   ,verbose=2, callbacks=callbacks
 )
+classifier.load_weights('models/deeperppddbest.h5')
 #plotting
 plot_val_loss(hist)
 plot_recall_f1score(hist)
 # testing
+
+updown_classifier=make_classifier()
+updown_classifier.compile(loss=keras.losses.BinaryCrossentropy(
+      from_logits=False,
+      name='binary_crossentorpy',
+  ), optimizer='adam', metrics=['accuracy'])
+
+updown_hist=updown_classifier.fit(
+      train_matrix,train_updown_label,batch_size=256,
+      epochs=50,
+      validation_data=(valid_matrix,valid_updown_label),
+      callbacks=updown_callbacks,
+  )
+updown_classifier.load_weights('models/' + 'updown.h5')
 
 testresult=classifier.predict(test_matrix)
 
@@ -136,13 +183,13 @@ best=get_tag_results(testresult,test_label2)[0]
 print(best)
 
 
-BATCH_SIZE = 32
-EPOCHS = 1
+BATCH_SIZE = 256
+EPOCHS = 150
 
 # Load & Prepare MNIST
-trainX=train_matrix.reshape((1500,24,24))
+trainX=train_matrix.reshape((int(0.8*tot_len),24,24))
 testresult=classifier.predict(train_matrix)
-trainy=np.array(get_tag_results(testresult,train_label2)[0]).reshape((1500,))
+trainy=np.array(get_tag_results(testresult,train_label2)[0]).reshape((int(0.8*tot_len),))
 
 
 
@@ -164,7 +211,7 @@ y_train=trainy
 X_train = cdcgan_utils.transform_images(X_train)
 X_train = X_train[:, :, :, None]
 # Create the models
-y_train = keras_utils.to_categorical(y_train, 13)
+y_train = keras_utils.to_categorical(y_train, 12)
 
 print("Generator:")
 G = cdcgan_models.generator_model()
@@ -208,7 +255,7 @@ for epoch in range(EPOCHS):
     d_losses_for_epoch = []
 
     for i in range(nb_of_iterations_per_epoch):
-        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 13))
+        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 12))
 
         image_batch = X_train[i * BATCH_SIZE:(i + 1) * BATCH_SIZE]
         label_batch = y_train[i * BATCH_SIZE:(i + 1) * BATCH_SIZE]
@@ -230,7 +277,7 @@ for epoch in range(EPOCHS):
         d_losses_for_epoch.append(D_loss)
         loss_logger.log_scalar("discriminator_loss", D_loss, iteration)
 
-        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 13))
+        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 12))
         D.trainable = False
         G_loss = GD.train_on_batch([noise, label_batch], [1] * BATCH_SIZE)
         D.trainable = True
@@ -253,4 +300,32 @@ for epoch in range(EPOCHS):
     D.save_weights("cdcgan/GANresult/models/weights/discriminator.h5")
 
 #RNN implementation
-RNN_training(classifier,bar_matrix_list3)
+RNN_model=RNN_training(classifier,bar_matrix_list3)
+chords=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
+for start_skill in range(12):
+  for chord in chords:
+    final_list=generation_info(start_skill,16,chord)
+    # create your MIDI object
+    mf = MIDIFile(1)     # only 1 track
+    track = 0   # the only track
+
+    time = 0    # start at the beginning
+    mf.addTrackName(track, time, "Sample Track")
+    mf.addTempo(track, time, 120)#2초에 1bar
+
+    # add some notes
+    channel = 0
+    used_time=[]
+    for i,bars in enumerate(final_list):
+      for notes in bars:
+
+        pitch = notes[0]+12           # C4 (middle C) 48이 C4인 내구현에 비해 여기는 60이 C4이다.
+        time = notes[1]/12+i*2             # start on beat 0
+        duration = notes[2]/12         # 1 beat long
+        volume= int(notes[3]*100)
+        if (time not in used_time and duration!=0):
+          mf.addNote(track, channel, pitch, time, duration, volume)
+          used_time.append(time)
+    with open("Generated_MIDI/"+mlb.classes_[start_skill]+chord+".mid", 'wb') as outf:
+      mf.writeFile(outf)
+      print(mlb.classes_[start_skill]+chord+"  generate done!")

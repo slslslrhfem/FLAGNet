@@ -239,7 +239,7 @@ def contour_to_label(contour):
     exception_range = (totnum - 1) // 4
     exception_range2 = (totnum - 1) // 3
     if (len(contour[2]) < 2.5):
-        labels.append('resting')
+        #labels.append('resting') It makes Generator bad.
         return labels
     else:
         if (is_repeating(contour[2], exception_range2)):
