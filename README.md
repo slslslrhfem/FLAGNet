@@ -9,6 +9,7 @@ and mido, prettymidi, and so on..
 
 If you want to apply this code for own midi-data, or understanding flow of code, then I recommend to use ipynb file with colab, with GPU mode.
 Download this github folder with name 'FLAGNet', place the folder at base folder of google drive and Mount Your google drive.
+(*It can be hard to upload all the datasets, So I recommend you to load file with PPDDlist/(something)list.txt.)
 
 with .py files, just run main.py. 
 
