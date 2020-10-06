@@ -9,11 +9,14 @@ import pickle
 import keras.backend.tensorflow_backend as tfback
 from keras import backend as K
 from keras import layers
+"""
 def _get_available_gpus():
   if tfback._LOCAL_DEVICES is None:
     devices = tf.config.list_logical_devices()
     tfback._LOCAL_DEVICES = [x.name for x in devices]
   return [x for x in tfback._LOCAL_DEVICES if 'device:gpu' in x.lower()]
+I use this GPU setting for colab, I didn't set any GPU setting for this .py code.
+"""
 def residual_block(filter, input, add=True):
     layer_1 = keras.layers.Conv2D(filters=filter//4, kernel_size=(1, 1), data_format="channels_first")(input)
     layer_2 = keras.layers.Conv2D(filters=filter//4, kernel_size=(3, 3), padding='same', data_format="channels_first", kernel_regularizer=keras.regularizers.l2(0.001))(layer_1)
@@ -25,12 +28,11 @@ def residual_block(filter, input, add=True):
         layer_3 = keras.layers.add([input, layer_3])
     layer_3 = keras.layers.ReLU()(layer_3)
     return layer_3
-def make_model():
-  #with tf.device('/gpu:0'):
-    input_layer = keras.Input(shape=(24, 24, 1))
+def make_model(minimum_time):
+    input_layer = keras.Input(shape=(24, minimum_time, 1))
     layer_1 = keras.layers.Conv2D(filters=64, kernel_size=(7, 7), padding='same', data_format="channels_first")(input_layer)
     block_1 = residual_block(64, layer_1)
-    block_2 = residual_block(64, block_1)
+    #block_2 = residual_block(64, block_1)
     #block_3 = residual_block(64, block_2)
     pooling_layer = keras.layers.MaxPool2D((2, 2),padding='same', data_format="channels_first")(block_1)
     block_4 = residual_block(128, pooling_layer, add=False)
@@ -46,24 +48,23 @@ def make_model():
     pooling_layer3 = keras.layers.AvgPool2D(padding='same',pool_size=(8, 8), data_format="channels_first")(block_7)
     last_layer = keras.layers.Flatten()(pooling_layer3)
     last_layer = keras.layers.Dropout(0.4)(last_layer)
-    last_layer = keras.layers.Dense(12, activation="sigmoid")(last_layer)
+    last_layer = keras.layers.Dense(13, activation="sigmoid")(last_layer)
     return keras.models.Model(inputs=input_layer, outputs=last_layer)
-def make_classifier():
-  #with tf.device('/gpu:0'):
-    classifier = Sequential()
-    classifier.add(layers.Conv2D(128, kernel_size=(5, 5), strides=(1, 1), padding='same',
+def make_classifier(minimum_time):
+    classifier = keras.Sequential()
+    classifier.add(keras.layers.Conv2D(128, kernel_size=(5, 5), strides=(1, 1), padding='same',
                   activation='relu',
-                  input_shape=(24,24,1)))
-    classifier.add(layers.BatchNormalization())
-    classifier.add(layers.advanced_activations.LeakyReLU(alpha=0.01))
-    classifier.add(layers.Conv2D(128, (2, 2), activation='relu', padding='same'))
-    classifier.add(layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
-    classifier.add(layers.Conv2D(256, (2, 2), padding='same'))
-    classifier.add(layers.advanced_activations.LeakyReLU(alpha=0.01))
-    classifier.add(layers.MaxPooling2D(pool_size=(2, 2)))
-    classifier.add(layers.Flatten())
-    classifier.add(layers.Dropout(0.25))
-    classifier.add(Dense(4, activation='sigmoid'))
+                  input_shape=(24,minimum_time,1)))
+    classifier.add(keras.layers.BatchNormalization())
+    classifier.add(keras.layers.LeakyReLU(alpha=0.01))
+    classifier.add(keras.layers.Conv2D(128, (2, 2), activation='relu', padding='same'))
+    classifier.add(keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+    classifier.add(keras.layers.Conv2D(256, (2, 2), padding='same'))
+    classifier.add(keras.layers.LeakyReLU(alpha=0.01))
+    classifier.add(keras.layers.MaxPooling2D(pool_size=(2, 2)))
+    classifier.add(keras.layers.Flatten())
+    classifier.add(keras.layers.Dropout(0.25))
+    classifier.add(keras.layers.Dense(4, activation='sigmoid'))
     return classifier
 
 

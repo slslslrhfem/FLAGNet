@@ -1,11 +1,8 @@
-
-
-
 # 최대한 많고 깔끔한 조건문을 사용하여 Skill들을 정의해볼 것. Multilabel Classification의 가능성이 있다.
 """
 Skill들의 음악학적인 특성 & 계산적인 특성을 적는 곳
 'resting' : 포함하는 음이 0 또는 1개인 경우 resting으로 정의. 다른 Skill들은 겹칠 수 있으나 이 skill이 Label될 경우 그냥 resting 고정이다.
-즉, Skilling Labeling은 'resting'이 아닌 경우에 진행된다.
+즉, Skilling Labeling은 'resting'이 아닌 경우에 진행된다.(삭제)
 'repeating' : 전체 음 중 n% 이상 또는 n개를 제외한 경우가 전부 같은 음일 경우 repeating으로 정의
 'up_steping' : 전체 음 중 n% 이상 또는 n개를 제외한 경우가 steping up 또는 같은 음, 즉 반음기준 3Note 이하로 상승하는 형태일 경우 up_steping으로 정의
 'down_steping' : 전체 음 중 n% 이상 또는 n개를 제외한 경우가 steping down 또는 같은 음, 즉 반음기준 3Note 이하로 하강하는 형태일 경우 down_steping으로 정의
@@ -239,8 +236,7 @@ def contour_to_label(contour):
     exception_range = (totnum - 1) // 4
     exception_range2 = (totnum - 1) // 3
     if (len(contour[2]) < 2.5):
-        #labels.append('resting') It makes Generator bad.
-        return labels
+        pass  # 원래는 resting이라는 Label을 append했으나 Control이 까다롭다
     else:
         if (is_repeating(contour[2], exception_range2)):
             labels.append('repeating')
@@ -283,9 +279,8 @@ def contour_to_label(contour):
             labels.append('continuing_rhythm')
 
     if (len(labels) == 0):
-        labels.append('no skills')
+        labels.append('no skills')  # classifier과 cGan에서 사용은 하되, 추후 음원 제작에서 사용을 안한다.
 
-    # something
     return labels
 
 def bar_to_contour(bar,one_bar_number,starting_number,j):

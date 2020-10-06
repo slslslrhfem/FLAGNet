@@ -20,7 +20,7 @@ import pretty_midi
 import mido
 from tqdm import tqdm
 from model import f1score,precision,make_classifier,make_model,recall
-from utils import get_meta,csv_to_array,midi_to_array,bar_to_matrix2,bar_to_matrix3,set_labels,get_tag_results,blur_image
+from utils import get_meta,csv_to_array,midi_to_array,bar_to_matrix3,set_labels,get_best_results,blur_image
 from feature_defining import bar_to_contour, contour_to_label
 from sklearn.preprocessing import MultiLabelBinarizer
 from plotting import plot_recall_f1score, plot_val_loss
@@ -29,6 +29,7 @@ import cv2
 midifilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_large/prime_midi'))
 jsonfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_large/descriptor'))
 csvfilenames=sorted(os.listdir('PPDD-Sep2018_sym_mono_large/prime_csv'))
+
 midilist=[]
 csvlist=[]
 jsonlist=[]
@@ -57,17 +58,11 @@ one_bar_number_list[i] means ith music's music time Signature information. if so
 starting_number_list[i] means ith music's first note starting time.
 """
 
-#   dot 기반의 matrix는 사용하지 않는다.
-
-#bar_list to bar_matrix_list
-#bar_matrix_list=copy.deepcopy(bar_list)
+Minimum_time=24
 bar_matrix_list3=copy.deepcopy(bar_list)
 for i,songs in enumerate(bar_matrix_list3):
   for j,bar in enumerate(songs):
-    #print(one_bar_number_list[i],starting_number_list[i])
-    #matrix=bar_to_matrix1(bar,one_bar_number_list[i],starting_number_list[i],j)
-    # bar_matrix_list[i][j]=matrix
-    matrix3=bar_to_matrix3(bar,one_bar_number_list[i],starting_number_list[i],j)
+    matrix3=bar_to_matrix3(bar,one_bar_number_list[i],starting_number_list[i],j,Minimum_time)
     bar_matrix_list3[i][j] = matrix3
 
 bar_updown_list=copy.deepcopy(bar_list)
@@ -83,8 +78,6 @@ for i,songs in enumerate(bar_list):
       else:
         updown_label='down'
     bar_updown_list[i][j]=updown_label
-#아래의 코드는 bar를 plot할때 사용. 필요하면 주석을 풀면 된다.
-#plot_bar(bar_matrix_list2[0][0])
 
 bar_contour_list=copy.deepcopy(bar_list)
 bar_label_list=copy.deepcopy(bar_contour_list)
@@ -96,20 +89,18 @@ for i,songs in enumerate(bar_list):
     bar_label_list[i][j]=label
 
 """
-여기부터 Tensorflow 기반의 model 구현
+Model implementation with tensorflow
 """
 all_matrix=[]
 all_labels=[]
 all_updown_labels=[]
-num_data=len(all_matrix)
 for songs in bar_label_list:
   for label in songs:
     label=np.array(label)
     all_labels.append(label)
-bar_label_list=[]#램 터짐
 for songs in bar_matrix_list3:
   for matrix in songs:
-    matrix=matrix.reshape(24,24,1)
+    matrix=matrix.reshape(24,Minimum_time,1)
     all_matrix.append(matrix)
 for songs in bar_updown_list:
   for label in songs:
@@ -118,58 +109,57 @@ updownle=LabelBinarizer()
 updownle.fit(['up','down','final','meanless'])
 updown_label=updownle.transform(np.array(all_updown_labels))
 tot_len=len(all_matrix)
-train_matrix=np.array(all_matrix[:int(0.8*tot_len)])
-train_label=np.array(all_labels[:int(0.8*tot_len)])
-valid_matrix=np.array(all_matrix[int(0.8*tot_len):])
-valid_label=np.array(all_labels[int(0.8*tot_len):])
-test_matrix=np.array(all_matrix[int(0.95*tot_len):])
-test_label=np.array(all_labels[int(0.95*tot_len):])
+train_matrix=np.array(all_matrix[:int(len(all_matrix)*0.85)])
+train_label=np.array(all_labels[:int(len(all_matrix)*0.85)])
+valid_matrix=np.array(all_matrix[int(len(all_matrix)*0.85):int(len(all_matrix)*0.95)])
+valid_label=np.array(all_labels[int(len(all_matrix)*0.85):int(len(all_matrix)*0.95)])
+test_matrix=np.array(all_matrix[int(len(all_matrix)*0.95):])
+test_label=np.array(all_labels[int(len(all_matrix)*0.95):])
 mlb=MultiLabelBinarizer()
 labels=set_labels()
 mlb.fit(labels)
 train_label2=mlb.transform(train_label)
 valid_label2=mlb.transform(valid_label)
 test_label2=mlb.transform(test_label)
-train_updown_label=updown_label[:int(0.8*tot_len)]
-valid_updown_label=updown_label[int(0.8*tot_len):]
+train_updown_label=updown_label[:int(0.85*tot_len)]
+valid_updown_label=updown_label[int(0.85*tot_len):int(0.95*tot_len)]
 test_updown_label=updown_label[int(0.95*tot_len):]
 
 model_path = 'models/deeperppddbest.h5'
-
 cb_checkpoint = ModelCheckpoint(filepath=model_path, monitor='val_accuracy',
                                 verbose=1, save_best_only=True)
 callbacks = [cb_checkpoint]
-model_path = 'models/' + 'updown.h5'
 
+model_path = 'models/updown.h5'
 cb_checkpoint = ModelCheckpoint(filepath=model_path, monitor='val_accuracy',
                                 verbose=1, save_best_only=True)
 updown_callbacks=[cb_checkpoint]
 
-classifier=make_model()
+classifier=make_model(Minimum_time)
 classifier.compile(loss=keras.losses.BinaryCrossentropy(
       from_logits=False, label_smoothing=0.1,
       name='binary_crossentropy'
   ), optimizer='adam', metrics=['accuracy',recall,precision,f1score])
 hist=classifier.fit(
-      train_matrix,train_label2,batch_size=32,
-      epochs=5,
+      train_matrix,train_label2,batch_size=256,
+      epochs=50,
       validation_data=(valid_matrix,valid_label2)
   ,verbose=2, callbacks=callbacks
 )
 classifier.load_weights('models/deeperppddbest.h5')
+
 #plotting
 plot_val_loss(hist)
 plot_recall_f1score(hist)
-# testing
 
-updown_classifier=make_classifier()
+updown_classifier=make_classifier(Minimum_time)
 updown_classifier.compile(loss=keras.losses.BinaryCrossentropy(
       from_logits=False,
       name='binary_crossentorpy',
   ), optimizer='adam', metrics=['accuracy'])
 
 updown_hist=updown_classifier.fit(
-      train_matrix,train_updown_label,batch_size=256,
+      train_matrix,train_updown_label,batch_size=128,
       epochs=50,
       validation_data=(valid_matrix,valid_updown_label),
       callbacks=updown_callbacks,
@@ -178,20 +168,12 @@ updown_classifier.load_weights('models/' + 'updown.h5')
 
 testresult=classifier.predict(test_matrix)
 
-matplotlib.use('Agg')
-best=get_tag_results(testresult,test_label2)[0]
-print(best)
-
-
 BATCH_SIZE = 256
-EPOCHS = 150
+EPOCHS = 100
 
-# Load & Prepare MNIST
-trainX=train_matrix.reshape((int(0.8*tot_len),24,24))
-testresult=classifier.predict(train_matrix)
-trainy=np.array(get_tag_results(testresult,train_label2)[0]).reshape((int(0.8*tot_len),))
-
-
+trainX=train_matrix.reshape((int(len(all_matrix)*0.85),24,Minimum_time))
+test_result=classifier.predict(train_matrix)
+trainy=np.array(get_best_results(test_result,train_label2)).reshape((int(len(all_matrix)*0.85),))
 
 encoder = LabelEncoder()
 
@@ -211,29 +193,25 @@ y_train=trainy
 X_train = cdcgan_utils.transform_images(X_train)
 X_train = X_train[:, :, :, None]
 # Create the models
-y_train = keras_utils.to_categorical(y_train, 12)
+y_train = keras_utils.to_categorical(y_train, 13)
 
 print("Generator:")
-G = cdcgan_models.generator_model()
+G = cdcgan_models.generator_model(Minimum_time)
 G.summary()
 
 print("Discriminator:")
-D = cdcgan_models.discriminator_model()
+D = cdcgan_models.discriminator_model(Minimum_time)
 D.summary()
 
 print("Combined:")
 GD = cdcgan_models.generator_containing_discriminator(G, D)
 GD.summary()
 
-optimizer = optimizers.Adam(0.0003, 0.5)
-optimizer2 = optimizers.Adam(0.0001, 0.5)
-optimizer3 = optimizers.Adam(0.0002, 0.5)
-
-
+optimizer = optimizers.Adam(0.0002, 0.5)
 G.compile(loss='binary_crossentropy', optimizer=optimizer)
-GD.compile(loss='binary_crossentropy', optimizer=optimizer3)
+GD.compile(loss='binary_crossentropy', optimizer=optimizer)
 D.trainable = True
-D.compile(loss='binary_crossentropy', optimizer=optimizer2)
+D.compile(loss='binary_crossentropy', optimizer=optimizer)
 
 # Setup Tensorboard loggers
 
@@ -255,7 +233,7 @@ for epoch in range(EPOCHS):
     d_losses_for_epoch = []
 
     for i in range(nb_of_iterations_per_epoch):
-        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 12))
+        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 13))
 
         image_batch = X_train[i * BATCH_SIZE:(i + 1) * BATCH_SIZE]
         label_batch = y_train[i * BATCH_SIZE:(i + 1) * BATCH_SIZE]
@@ -277,7 +255,7 @@ for epoch in range(EPOCHS):
         d_losses_for_epoch.append(D_loss)
         loss_logger.log_scalar("discriminator_loss", D_loss, iteration)
 
-        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 12))
+        noise = cdcgan_utils.generate_noise((BATCH_SIZE, 13))
         D.trainable = False
         G_loss = GD.train_on_batch([noise, label_batch], [1] * BATCH_SIZE)
         D.trainable = True
@@ -299,12 +277,14 @@ for epoch in range(EPOCHS):
     G.save_weights("cdcgan/GANresult/models/weights/generator.h5")
     D.save_weights("cdcgan/GANresult/models/weights/discriminator.h5")
 
+with_chords=True
 #RNN implementation
-RNN_model=RNN_training(classifier,bar_matrix_list3)
+RNNmodel=RNN_training(classifier,bar_matrix_list3,Minimum_time)
+
 chords=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
-for start_skill in range(12):
+for start_skill in range(13):
   for chord in chords:
-    final_list=generation_info(start_skill,16,chord)
+    final_list=generation_info(start_skill,16,chord,Minimum_time,RNNmodel,updown_classifier,with_chords=with_chords)
     # create your MIDI object
     mf = MIDIFile(1)     # only 1 track
     track = 0   # the only track
@@ -316,16 +296,47 @@ for start_skill in range(12):
     # add some notes
     channel = 0
     used_time=[]
-    for i,bars in enumerate(final_list):
+    for i,bars in enumerate(final_list[0]):
+      lowest_pitch=999
       for notes in bars:
-
         pitch = notes[0]+12           # C4 (middle C) 48이 C4인 내구현에 비해 여기는 60이 C4이다.
-        time = notes[1]/12+i*2             # start on beat 0
-        duration = notes[2]/12         # 1 beat long
+        time = notes[1]/(Minimum_time/4)+i*4             # start on beat 0
+        duration = notes[2]/(Minimum_time/4)         # 1 beat long
         volume= int(notes[3]*100)
-        if (time not in used_time and duration!=0):
+        if (time not in used_time and duration!=0): #not in used_time 빼면 화음도 들간다.
           mf.addNote(track, channel, pitch, time, duration, volume)
           used_time.append(time)
-    with open("Generated_MIDI/"+mlb.classes_[start_skill]+chord+".mid", 'wb') as outf:
+          if pitch<lowest_pitch:
+            lowest_pitch=pitch
+      if (with_chords is True):
+        init_pitch=lowest_pitch
+        chord_idx=np.where(final_list[1][i]==1)
+        pitch=0
+        iter=0
+        pitch_in_chord=[]
+        while (pitch<init_pitch):
+          for idx in chord_idx[0]:
+            pitch=idx+12*iter
+            if (pitch>=init_pitch):
+              break
+            pitch_in_chord.append(pitch)
+          iter+=1
+
+        pitch=pitch_in_chord[len(pitch_in_chord)-1]
+        time = i*4
+        duration=4.0
+        volume=50
+        mf.addNote(track,channel,pitch,time,duration,volume)
+        pitch=pitch_in_chord[len(pitch_in_chord)-2]
+        time = i*4
+        duration=4.0
+        volume=50
+        mf.addNote(track,channel,pitch,time,duration,volume)
+        pitch=pitch_in_chord[len(pitch_in_chord)-3]
+        time = i*4
+        duration=4.0
+        volume=50
+        mf.addNote(track,channel,pitch,time,duration,volume)
+    with open("/content/drive/My Drive/MARG/PPDDlist/MIDI_result/output"+mlb.classes_[start_skill]+chord+".mid", 'wb') as outf:
       mf.writeFile(outf)
       print(mlb.classes_[start_skill]+chord+"  generate done!")
