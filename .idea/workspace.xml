@@ -1,20 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="7655fe9e-ad22-4a24-bb32-70d5953183b6" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Decoding.py" beforeDir="false" afterPath="$PROJECT_DIR$/Decoding.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/RNNmodel.py" beforeDir="false" afterPath="$PROJECT_DIR$/RNNmodel.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cdcgan/cdcgan_models.py" beforeDir="false" afterPath="$PROJECT_DIR$/cdcgan/cdcgan_models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/cdcgan/cdcgan_utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/cdcgan/cdcgan_utils.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/example/logger_examples.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/feature_defining.py" beforeDir="false" afterPath="$PROJECT_DIR$/feature_defining.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/model.py" beforeDir="false" afterPath="$PROJECT_DIR$/model.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/deeperppddbest.h5" beforeDir="false" afterPath="$PROJECT_DIR$/models/deeperppddbest.h5" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utils.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils.py" afterDir="false" />
-    </list>
+    <list default="true" id="7655fe9e-ad22-4a24-bb32-70d5953183b6" name="Default Changelist" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -23,11 +10,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/main.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="130">
-              <caret line="281" selection-start-line="281" selection-end-line="281" />
+              <caret line="134" column="60" selection-start-line="134" selection-start-column="60" selection-end-line="134" selection-end-column="60" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
               </folding>
@@ -47,11 +34,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/utils.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="342">
-              <caret line="39" column="47" selection-start-line="39" selection-start-column="47" selection-end-line="39" selection-end-column="47" />
+            <state relative-caret-position="-703">
+              <caret line="39" column="44" selection-start-line="39" selection-start-column="44" selection-end-line="39" selection-end-column="44" />
               <folding>
                 <element signature="e#0#11#0" expanded="true" />
               </folding>
@@ -139,9 +126,9 @@
         <option value="$PROJECT_DIR$/cdcgan/cdcgan_models.py" />
         <option value="$PROJECT_DIR$/cdcgan/cdcgan_utils.py" />
         <option value="$PROJECT_DIR$/Decoding.py" />
-        <option value="$PROJECT_DIR$/main.py" />
         <option value="$PROJECT_DIR$/RNNmodel.py" />
         <option value="$PROJECT_DIR$/utils.py" />
+        <option value="$PROJECT_DIR$/main.py" />
       </list>
     </option>
   </component>
@@ -298,7 +285,14 @@
       <option name="project" value="LOCAL" />
       <updated>1598426340551</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Refactoring">
+      <created>1602024468694</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1602024468694</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TodoView">
@@ -388,7 +382,8 @@
     <MESSAGE value="staccato feature change and add plot and so on.." />
     <MESSAGE value="Importing gaborvecsei's CDCGAN model." />
     <MESSAGE value="Importing gaborvecsei's CDCGAN model. and refactoring from ipynb.&#10;It contains changing form of image,&#10;Gan Debugging,&#10;RNN implementation." />
-    <option name="LAST_COMMIT_MESSAGE" value="Importing gaborvecsei's CDCGAN model. and refactoring from ipynb.&#10;It contains changing form of image,&#10;Gan Debugging,&#10;RNN implementation." />
+    <MESSAGE value="Refactoring" />
+    <option name="LAST_COMMIT_MESSAGE" value="Refactoring" />
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/cdcgan/cdcgan_train.py">
@@ -489,16 +484,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="130">
-          <caret line="281" selection-start-line="281" selection-end-line="281" />
-          <folding>
-            <element signature="e#0#17#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/cdcgan/cdcgan_utils.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1786">
@@ -511,10 +496,20 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/utils.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="342">
-          <caret line="39" column="47" selection-start-line="39" selection-start-column="47" selection-end-line="39" selection-end-column="47" />
+        <state relative-caret-position="-703">
+          <caret line="39" column="44" selection-start-line="39" selection-start-column="44" selection-end-line="39" selection-end-column="44" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="130">
+          <caret line="134" column="60" selection-start-line="134" selection-start-column="60" selection-end-line="134" selection-end-column="60" />
+          <folding>
+            <element signature="e#0#17#0" expanded="true" />
           </folding>
         </state>
       </provider>
