@@ -11,4 +11,4 @@ If you want to apply this code for own midi-data, or understanding flow of code,
 
 with .py files, just run main.py. 
 
-GAN model is application of https://github.com/gaborvecsei/CDCGAN-Keras/tree/master/cdcgan.
+GAN model is from https://github.com/gaborvecsei/CDCGAN-Keras/tree/master/cdcgan.
