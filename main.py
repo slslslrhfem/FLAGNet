@@ -158,6 +158,7 @@ updown_classifier.compile(loss=keras.losses.BinaryCrossentropy(
       name='binary_crossentorpy',
   ), optimizer='adam', metrics=['accuracy'])
 
+
 updown_hist=updown_classifier.fit(
       train_matrix,train_updown_label,batch_size=128,
       epochs=50,
