@@ -12,7 +12,7 @@ Download this github folder with name 'FLAGNet', place the folder at base folder
 
 (*It can be hard to upload all the datasets, So I recommend you to load file with PPDDlist/(something)list.txt.
 
-PPDDlist folder is here :  https://drive.google.com/drive/folders/14IHhp8zrZ3hplU-lMA_Sl45pKXRIFlqa?usp=sharing
+PPDDlist folder is here :  https://drive.google.com/file/d/1Bwq6SHUPhLvurcy6pf1GTAUjV4ssztMM/view?usp=sharing
 I use drive sharing because of data size issue. Please move PPDDlist folder in FLAGNet folder in google drive and follow ipynb code.
 )
 
