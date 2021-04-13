@@ -19,3 +19,8 @@ I use drive sharing because of data size issue. Please move PPDDlist folder in F
 with .py files, just run main.py. 
 
 GAN model is from https://github.com/gaborvecsei/CDCGAN-Keras/tree/master/cdcgan.
+
+
+
+# Now I considering some issue and multichannel Flagnet.. 
+# Maybe we'll update this model by 2021 june, or make new repository for multichannel model
