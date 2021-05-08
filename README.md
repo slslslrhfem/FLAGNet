@@ -22,5 +22,7 @@ GAN model is from https://github.com/gaborvecsei/CDCGAN-Keras/tree/master/cdcgan
 
 
 
-Now I considering some issue and multichannel Flagnet.. 
-Maybe we'll update this model by 2021 june, or make new repository for multichannel model
+Updated in 2021-05-09, For AI contest 2021. with file FLAGNet.ipynb.
+
+Changes : It uses POP-909 dataset, and fixed some debugging issue.
+
