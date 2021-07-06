@@ -27,3 +27,4 @@ Updated in 2021-05-09, For AI contest 2021. with file FLAGNet.ipynb.
 
 Changes : It uses POP-909 dataset, and fixed some debugging issue.
 
+(It seems that this repo needs more refactoring.)
