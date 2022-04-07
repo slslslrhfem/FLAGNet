@@ -1,2 +1,0 @@
-cdcgan
-swiss_army_tensorboard

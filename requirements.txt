@@ -1,0 +1,17 @@
+h5py
+pretty_midi
+tensorflow
+keras
+midiutil
+numpy
+scipy
+pandas
+sklearn
+tqdm
+music21
+openpyxl
+imageio
+opencv-python
+ipython
+matplotlib
+xlrd==1.2.0
