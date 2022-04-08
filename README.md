@@ -10,7 +10,7 @@ dcGAN model lots of help from https://github.com/gaborvecsei/CDCGAN-Keras/tree/m
 
 ## How to use
 
-1. Prepare Python==3.6 Environments. ( Note that I had some issue for Python==3.9 Environments )
+1. Prepare Python=3.6 Environments. ( Note that I had some issue for Python=3.9 Environments )
 
 If you use conda Virtual Environments, then..
 
