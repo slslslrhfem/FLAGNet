@@ -49,5 +49,6 @@ And then,
 
     python main.py generate_midi
     
+    
 This model should generated MIDIs, with name [First bar's skill label][chord scale].mid in midi_result folder.
   
