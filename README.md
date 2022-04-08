@@ -19,6 +19,7 @@ If you use conda Virtual Environments, then..
 
 2. Install prerequisties.
 
+
     pip install -r requirements.txt
 
 Note that this requirements has "tensorflow", and it may requires CUDA GPU setting for running codes. 
@@ -27,6 +28,7 @@ Note that this requirements has "tensorflow", and it may requires CUDA GPU setti
 There is some hyperparameter setting or musical decoding condition(Minimum notes unit, use notes in scale or not, etc..) parameters in **hyperparameter.py**.
 
 4. Run Main Codes with one arguments
+
 
     python main.py preprocess
     
