@@ -57,4 +57,5 @@ And then,
     
     
 This model should generated MIDIs, with name [First bar's skill label][chord scale].mid in midi_result folder.
-  
+ 
+colab notebook (Full code & Tutorial) will be added!
