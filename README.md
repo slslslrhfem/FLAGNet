@@ -12,7 +12,7 @@ There are some cherry-picked sample in sample folder, and whole results in MIDI_
 
 ## How to use
 
-1. Prepare Python=3.6 Environments. ( Note that I had some issue for Python=3.9 Environments )
+1. Prepare Python=3.6 Environments. ( Note that This Project had some issue in model for Python=3.9 Environments )
 
 If you use conda Virtual Environments, then..
 
