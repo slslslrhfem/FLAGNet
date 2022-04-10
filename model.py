@@ -263,7 +263,7 @@ class GAN_models(object):
         optimizer = tf.keras.optimizers.Adam(self.learning_rate, 0.5)
 
         G.compile(loss='binary_crossentropy',  optimizer=optimizer)
-        GD.compile(loss=['binary_crossentropy',tf.keras.losses.MeanSquaredError()], loss_weights = [1,0.01], optimizer=optimizer)
+        GD.compile(loss=['binary_crossentropy',tf.keras.losses.MeanAbsoluteError()], loss_weights = [1,0.0003], optimizer=optimizer)
         
         D.trainable = True
         D.compile(loss='binary_crossentropy',loss_weights=[0.1], optimizer=optimizer)
