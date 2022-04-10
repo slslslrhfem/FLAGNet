@@ -4,6 +4,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import subprocess
+from hyperparameter import Hyperparams as hp
 
 """
 Original dcGAN Codes from https://github.com/gaborvecsei/CDCGAN-Keras. 
@@ -28,7 +29,7 @@ def generate_noise(shape: tuple):
 
 
 def generate_condition_embedding(label: int, nb_of_label_embeddings: int):
-    label_embeddings = np.zeros((nb_of_label_embeddings, 13))
+    label_embeddings = np.zeros((nb_of_label_embeddings, hp.Label_num))
     label_embeddings[:, label] = 1
     return label_embeddings
 
@@ -47,7 +48,7 @@ def generate_condition_with_batch(condition, nb_of_image_embeddings: int):
     return image_embeddings
 
 def generate_images(generator, nb_images: int, label: int, time_condition,pitch_condition):
-    noise = generate_noise((nb_images, 13))
+    noise = generate_noise((nb_images, hp.Label_num))
     label_batch = generate_condition_embedding(label, nb_images)
     time_condition_batch = generate_condition(time_condition, nb_images)
     pitch_condition_batch = generate_condition(pitch_condition, nb_images)
@@ -57,11 +58,11 @@ def generate_images(generator, nb_images: int, label: int, time_condition,pitch_
 
 def generate_mnist_image_grid(generator,time_condition, pitch_condition, title: str = "Generated images"):
     generated_images = []
-    for i in range(10):
-        noise = generate_noise((10, 13))
-        label_input = generate_condition_embedding(i, 10)
-        time_condition_batch = generate_condition_with_batch(time_condition, 10)
-        pitch_condition_batch = generate_condition_with_batch(pitch_condition, 10)
+    for i in range(hp.Label_num):
+        noise = generate_noise((hp.Label_num, hp.Label_num))
+        label_input = generate_condition_embedding(i, hp.Label_num)
+        time_condition_batch = generate_condition_with_batch(time_condition, hp.Label_num)
+        pitch_condition_batch = generate_condition_with_batch(pitch_condition, hp.Label_num)
         gen_images = generator.predict([noise, label_input ,time_condition_batch, pitch_condition_batch], verbose=0)
         generated_images.extend(gen_images)
 

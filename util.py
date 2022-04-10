@@ -7,6 +7,7 @@ import copy
 from sklearn.preprocessing import MultiLabelBinarizer, LabelBinarizer
 import scipy as sp
 import scipy.ndimage
+from hyperparameter import Hyperparams as hp
 
 def get_meta():
   file=pd.read_excel('POP909/index.xlsx', engine='openpyxl')
@@ -64,11 +65,11 @@ def nearest_time(time,minimum_size):
 def set_labels():
   labels=[]
   label_tuple=[]
-  skills_pitch=['repeating','up_steping','down_steping','up_leaping','down_leaping','steping_twisting','leaping_twisting','dummy']
-  skills_timing=['fast_rhythm','dummy']
-  skills_triplet=['triplet','dummy']
-  skills_one_rhythm=['One_rhythm','dummy']
-  skills_staccato=['staccato','continuing_rhythm','dummy']
+  skills_pitch=['repeating','up_steping','down_steping','up_leaping','down_leaping','dummy']#['repeating','up_steping','down_steping','up_leaping','down_leaping','steping_twisting','leaping_twisting','dummy']
+  skills_timing=['fast_rhythm','dummy']#['fast_rhythm','dummy']
+  skills_triplet=['dummy']#['triplet','dummy']
+  skills_one_rhythm=['dummy']#['One_rhythm','dummy']
+  skills_staccato=['dummy']#['staccato','continuing_rhythm','dummy']
   for pitch in skills_pitch:
     for timing in skills_timing:
       for triplet in skills_triplet:
@@ -130,8 +131,8 @@ def get_tag_results(testresult,test_label2):
   resultmat=[]
   bestmat=[]
   for i in range(len(testresult)):
-    eval_result=[0 for i in range(13)]
-    best_result=[0 for i in range(13)]
+    eval_result=[0 for i in range(hp.Label_num)]
+    best_result=[0 for i in range(hp.Label_num)]
     class_num=np.count_nonzero(test_label2[i]==1)+1
     classidx=(-testresult[i]).argsort()[:class_num]
     for k,j in enumerate(classidx):
@@ -176,7 +177,7 @@ def get_best_results(testresult,test_label2):  #for optimizing get_tag_results f
   mlb.fit(labels)
   
   for i in range(len(testresult)):
-    best_result=[0 for i in range(13)]
+    best_result=[0 for i in range(hp.Label_num)]
     class_num=np.count_nonzero(test_label2[i]==1)+1
     classidx=(-testresult[i]).argsort()[:class_num]
     for k,j in enumerate(classidx):

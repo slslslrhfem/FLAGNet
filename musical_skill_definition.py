@@ -1,4 +1,4 @@
-
+from hyperparameter import Hyperparams as hp
 """
 Information of skill labels
 
@@ -213,7 +213,7 @@ def is_staccato(contour_list,exception_range):
   ranges=len(contour_list)//2
   staccato_num=0
   for times in contour_list:
-    if (times<0.2):
+    if (times<0.26): #if Minimum time = 16 -> minimum length == 0.25
       staccato_num+=1
   if (staccato_num>=ranges):
     boolean_staccato=1
@@ -233,8 +233,8 @@ def is_continuing_rhythm(contour_list):
 def contour_to_label(contour):
   labels=[]
   totnum=len(contour[2]) #실 음의 갯수이다.
-  exception_range=(totnum-1)//4
-  exception_range2=(totnum-1)//3
+  exception_range=(totnum-1)//3
+  exception_range2=(totnum-1)//2
   if (len(contour[2])<2.5):
     pass#원래는 resting이라는 Label을 append했으나 Control이 까다롭다
   else:
@@ -257,29 +257,29 @@ def contour_to_label(contour):
 
     if (is_steping_twisting(contour[2],exception_range2)):
       if (len(contour[2])>3):
-        labels.append('steping_twisting')
-
+        #labels.append('steping_twisting')
+        pass
     if (is_leaping_twisting(contour[2],exception_range2)):
       if (len(contour[2])>3):
-        labels.append('leaping_twisting')
-
+        #labels.append('leaping_twisting')
+        pass
     if (len(contour[2])>8.5):
       labels.append('fast_rhythm')
 
-    if (is_one_rhythm(contour[3],exception_range)):
-      labels.append('One_rhythm')
-
-    if (is_triplet(contour[3],exception_range2)):
+    if (is_one_rhythm(contour[3],exception_range2)):
+      #labels.append('One_rhythm')
+      pass
+    if (is_triplet(contour[3],exception_range2) and hp.Minimum_time//3 == 0):
       labels.append('triplet')
 
     if (is_staccato(contour[4],exception_range2)):
-      labels.append('staccato')  
-
+      #labels.append('staccato')  
+      pass
     if (is_continuing_rhythm(contour[0])):
-      labels.append('continuing_rhythm')  
-
+      #labels.append('continuing_rhythm')  
+      pass
   if (len(labels)==0):
-    labels.append('no skills')#Use for Classifier and cGAN, but I don't use this label for generation
+    labels.append('no skills') # Don't use this label at generation. 
 
 
   return labels

@@ -96,6 +96,7 @@ class GAN_models(object):
                 test_result=np.concatenate((test_result,sub_testresult))
         sub_testresult=self.classifier.predict(self.all_matrix[1000*(i+1):])
         test_result=np.concatenate((test_result,sub_testresult))
+        tot_dict={}
         mlb=MultiLabelBinarizer()
         labels=set_labels()
         mlb.fit(labels)
@@ -105,12 +106,20 @@ class GAN_models(object):
         encoder.fit(trainy)
         trainy = encoder.transform(trainy)
         trainy=np.array(trainy)
+        """
+        for results in trainy:
+            if str(results) not in tot_dict:
+                tot_dict[str(results)]=1
+            else:
+                tot_dict[str(results)]+=1
+        print(tot_dict)
+        """
         return trainX, trainy
 
     def generator_model(self,minimum_time):
         ACTIVATION = layers.Activation("tanh")
         # Prepare noise input
-        input_z = layers.Input((13,))
+        input_z = layers.Input((hp.Label_num,))
         dense_z_1 = layers.Dense(1024)(input_z)
         act_z_1 = ACTIVATION(dense_z_1)
         dense_z_2 = layers.Dense(128 * 6 * int(minimum_time/4))(act_z_1)
@@ -118,7 +127,7 @@ class GAN_models(object):
         reshape_z = layers.Reshape((6, int(minimum_time/4), 128), input_shape=(128 * 6 * int(minimum_time/4),))(bn_z_1) # 6, 4, 128
 
         # Prepare Conditional (label) input
-        input_c = layers.Input((13,))
+        input_c = layers.Input((hp.Label_num,))
         dense_c_1 = layers.Dense(1024)(input_c)
         act_c_1 = ACTIVATION(dense_c_1)
         dense_c_2 = layers.Dense(128 * 6 * int(minimum_time/4))(act_c_1)
@@ -128,7 +137,7 @@ class GAN_models(object):
 
         # Combine input source
         concat_z_c = layers.Concatenate()([reshape_z, reshape_c])# 6, 4, 384
-        multiple_z_c = layers.Multiply()([reshape_z, reshape_c])#6, 4, 192
+        #multiple_z_c = layers.Multiply()([reshape_z, reshape_c])#6, 4, 192
 
         # Prepare Conditional (Midi image) input
 
@@ -153,12 +162,12 @@ class GAN_models(object):
         bn_projection_layer = layers.BatchNormalization()(projection_conv_layer)
 
         # Image generation with the concatenated inputs
-        up_1 = layers.UpSampling2D(size=(2, 2))(multiple_z_c) # 12, 8, N
-        #up_1 = layers.BatchNormalization()(up_1)#for adding layer
+        up_1 = layers.UpSampling2D(size=(2, 2))(concat_z_c) # 12, 8, N
+        up_1 = layers.BatchNormalization()(up_1)#for adding layer
 
-        #projection_1 =  layers.Concatenate()([up_1,bn_projection_layer]) 
+        projection_1 =  layers.Concatenate()([up_1,bn_projection_layer]) 
 
-        conv_1 = layers.Conv2D(64, (5, 5), padding='same')(up_1) # 12, 8, 64
+        conv_1 = layers.Conv2D(64, (5, 5), padding='same')(projection_1) # 12, 8, 64
         act_1 = ACTIVATION(conv_1)
         up_2 = layers.UpSampling2D(size=(2, 2))(act_1) # 24, 16, 64
         conv_2 = layers.Conv2D(1, (5, 5), padding='same')(up_2)
@@ -176,7 +185,7 @@ class GAN_models(object):
         act_2_image = ACTIVATION(conv_2_image)
         pool_2_image = layers.MaxPooling2D(pool_size=(2, 2))(act_2_image)
 
-        input_c = layers.Input((13,))
+        input_c = layers.Input((hp.Label_num,))
         dense_1_c = layers.Dense(1024)(input_c)
         act_1_c = ACTIVATION(dense_1_c)
         dense_2_c = layers.Dense(4 * int(minimum_time/4-2) * 128)(act_1_c)
@@ -205,10 +214,11 @@ class GAN_models(object):
 
 
         concat = layers.Concatenate()([pool_2_image, reshaped_c])
-        multiple = layers.Multiply()([pool_2_image, reshaped_c])
+        #multiple = layers.Multiply()([pool_2_image, reshaped_c])
         #concat = layers.Add()([concat, bn_projection_layer])
-        #multiple = layers.Concatenate()([multiple, bn_projection_layer])
-        flat = layers.Flatten()(multiple)
+        concat = layers.BatchNormalization()(concat)
+        concat = layers.Concatenate()([concat, bn_projection_layer])
+        flat = layers.Flatten()(concat)
         dense_1 = layers.Dense(1024)(flat)
         
         act_1 = ACTIVATION(dense_1)
@@ -218,22 +228,17 @@ class GAN_models(object):
         return model
     
     def generator_containing_discriminator(self,g, d, minimum_time):
-        input_z = layers.Input((13,))
-        input_c = layers.Input((13,))
+        input_z = layers.Input((hp.Label_num,))
+        input_c = layers.Input((hp.Label_num,))
         input_time_v = layers.Input((128,))
         input_pitch_v = layers.Input((128,))
+        input_target = layers.Input((24, minimum_time, 1))
         gen_image = g([input_z, input_c, input_time_v, input_pitch_v])
         d.trainable = False
         is_real = d([gen_image, input_c, input_time_v, input_pitch_v])
-        model = models.Model(inputs=[input_z, input_c, input_pitch_v, input_time_v], outputs=is_real)
+        model = models.Model(inputs=[input_z, input_c, input_pitch_v, input_time_v], outputs=[is_real, gen_image])
         return model
 
-    def multi_condition_loss(self, x, y):
-        #todo, x should be 
-        loss = 1 
-
-
-        return loss
 
     def training_gan(self):
         X_train, y_train = self.get_label()
@@ -241,11 +246,10 @@ class GAN_models(object):
         X_train = transform_images(X_train)
         X_train = X_train[:, :, :, None]
         V_train = self.all_primining_notes # (54051, 2, N), with Various length N. V_train[0][0] -> rel pitch of First batch
-        print(V_train[1])
         plt.imshow(X_train[1].reshape((24,16)))
         plt.savefig('datatest.png')
 
-        y_train = np_utils.to_categorical(y_train, 13)
+        y_train = np_utils.to_categorical(y_train, hp.Label_num)
         rel_pitch_train = tf.keras.preprocessing.sequence.pad_sequences(V_train[:,0],maxlen=128)
         rel_time_train = tf.keras.preprocessing.sequence.pad_sequences(V_train[:,1], maxlen=128) # padding with maximum length 128.
 
@@ -258,11 +262,15 @@ class GAN_models(object):
 
         optimizer = tf.keras.optimizers.Adam(self.learning_rate, 0.5)
 
-        G.compile(loss='binary_crossentropy', optimizer=optimizer)
-        GD.compile(loss='binary_crossentropy', optimizer=optimizer)
+        G.compile(loss='binary_crossentropy',  optimizer=optimizer)
+        GD.compile(loss=['binary_crossentropy',tf.keras.losses.MeanSquaredError()], loss_weights = [1,0.01], optimizer=optimizer)
+        
         D.trainable = True
-        D.compile(loss='binary_crossentropy', optimizer=optimizer)
-
+        D.compile(loss='binary_crossentropy',loss_weights=[0.1], optimizer=optimizer)
+        """
+        tf.keras.utils.plot_model(G,to_file='generator.png')
+        tf.keras.utils.plot_model(D,to_file='discriminator.png')
+        """
         # Model Training
 
         image_logger = TFBoardImageLogger("GAN_result/logs/generated_images")
@@ -281,7 +289,7 @@ class GAN_models(object):
             d_losses_for_epoch = []
 
             for i in range(nb_of_iterations_per_epoch):
-                noise = generate_noise((BATCH_SIZE, 13))
+                noise = generate_noise((BATCH_SIZE, hp.Label_num))
 
                 image_batch = np.array(X_train[i * BATCH_SIZE:(i + 1) * BATCH_SIZE])
                 label_batch = np.array(y_train[i * BATCH_SIZE:(i + 1) * BATCH_SIZE])
@@ -299,9 +307,9 @@ class GAN_models(object):
                     D_loss = D.train_on_batch([X, label_batches_for_discriminator, time_vector_condition_for_discriminator,pitch_vector_condition_for_discriminator], y)
                     d_losses_for_epoch.append(D_loss)
 
-                noise = generate_noise((BATCH_SIZE, 13))
+                noise = generate_noise((BATCH_SIZE, hp.Label_num))
                 D.trainable = False
-                G_loss = GD.train_on_batch([noise, label_batch,rel_time_batch,rel_pitch_batch], np.array([1] * BATCH_SIZE))
+                G_loss = GD.train_on_batch([noise, label_batch,rel_time_batch,rel_pitch_batch], [np.array([1] * BATCH_SIZE),image_batch])
                 D.trainable = True
                 g_losses_for_epoch.append(G_loss)
 
@@ -352,14 +360,14 @@ class RNN_models(object):
     def make_RNNmodel(self):
         embedding_vector_length = 20
         timesteps = 8
-        top_words=13
+        top_words=hp.Label_num
         RNNmodel = Sequential()
         RNNmodel.add(Embedding(top_words, embedding_vector_length, input_length=20))
         RNNmodel.add(GRU(100, return_sequences=True,
                     input_shape=(timesteps, 100)))  # returns a sequence of vectors of dimension 32
         RNNmodel.add(LSTM(100))  # return a single vector of dimension 32
         RNNmodel.add(Dropout(0.2))
-        RNNmodel.add(Dense(13, activation='sigmoid', kernel_regularizer=regularizers.l2(0.01)))
+        RNNmodel.add(Dense(hp.Label_num, activation='sigmoid', kernel_regularizer=regularizers.l2(0.01)))
         RNNmodel.summary()
         RNNmodel.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
@@ -451,6 +459,14 @@ class classifier_models(object):
         valid_label2=mlb.transform(self.valid_label)
         test_label2=mlb.transform(self.test_label)
         all_label = mlb.transform(self.all_labels)
+        tot_array = np.zeros(hp.Label_num)
+        for label in all_label:
+            tot_array += label
+        tot_array = 1 / tot_array
+        tot_array = tot_array /  np.linalg.norm(tot_array)
+        class_weights={}
+        for idx, weights in enumerate(tot_array):
+            class_weights[idx]=weights
 
         model_path = 'models/label_classifier.h5'
         cb_checkpoint = ModelCheckpoint(filepath=model_path, monitor='val_accuracy',
@@ -467,7 +483,7 @@ class classifier_models(object):
             self.train_matrix,train_label2,batch_size=256,
             epochs=100,
             validation_data=(self.valid_matrix,valid_label2),
-            callbacks=callbacks,)
+            callbacks=callbacks,class_weight=class_weights)
 
     def updown_classifier_train(self):
         print("updown_classifier_training")
@@ -525,7 +541,7 @@ class classifier_models(object):
             pooling_layer3 = keras.layers.AvgPool2D(padding='same',pool_size=(8, 8), data_format="channels_first")(block_7)
             last_layer = keras.layers.Flatten()(pooling_layer3)
             last_layer = keras.layers.Dropout(0.4)(last_layer)
-            last_layer = keras.layers.Dense(13, activation="sigmoid")(last_layer)
+            last_layer = keras.layers.Dense(hp.Label_num, activation="sigmoid")(last_layer)
             return keras.models.Model(inputs=input_layer, outputs=last_layer)
 
     def make_updown_classifier(self):

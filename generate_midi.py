@@ -49,7 +49,7 @@ class MIDI_generator(object):
         labels=set_labels()
         mlb.fit(labels)
         chords = self.chords
-        for start_skill in range(13):
+        for start_skill in range(hp.Label_num):
             for chord in chords:
                 self.RNN_model.load_weights("models/RNN.h5")
                 final_list=generation_info(self.G,start_skill,hp.bar_length,chord,hp.Minimum_time,self.RNN_model,self.updown_classifier,with_chords=hp.with_chords)

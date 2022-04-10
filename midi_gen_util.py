@@ -8,7 +8,8 @@ from keras.preprocessing import sequence
 from hyperparameter import Hyperparams as hp
 from gan_util import generate_images
 import tensorflow as tf
-
+from sklearn.preprocessing import MultiLabelBinarizer
+from util import *
 
 def matrix_cleaner(matrix,minimum_time):
   #matrix should be size of 24*24
@@ -136,7 +137,6 @@ C_chords=np.array([I_chord,V_chord,vi_chord,IV_chord,iii_chord,ii_chord])
 chords=['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
 def chord_matching(shifted_matrix,chord,last_pitch,direction,with_chords=False):
   selected_chords=None
-  before_matrix=shifted_matrix[0]
   before_pitch=last_pitch
   if (last_pitch<50):
     direction=1
@@ -206,8 +206,14 @@ def chord_matching(shifted_matrix,chord,last_pitch,direction,with_chords=False):
   return return_val, sets,selected_chords#final pitch
 
 def generation_info(G,start_skill,length,chord,minimum_time,RNNmodel,updown_classifier,with_chords=False):
+  mlb=MultiLabelBinarizer()
+  labels=set_labels()
+  mlb.fit(labels)
+  for idx in range(hp.Label_num):
+    if mlb.classes_[idx]=='no skills':
+      no_skill_idx=idx
   skills=[]
-  init_condition = np.zeros(128)
+  init_condition = np.zeros(128) # rel_pitch and rel_time vector
   skills.append(start_skill)
   infos=[]
   H=generate_images(G,1,start_skill,init_condition,init_condition)
@@ -223,9 +229,11 @@ def generation_info(G,start_skill,length,chord,minimum_time,RNNmodel,updown_clas
   feature_seq_pad=sequence.pad_sequences(np.array([feature_seq]),maxlen=20)
   prediction=RNNmodel.predict(feature_seq_pad)
   prediction[0][start_skill]=prediction[0][start_skill]/3
-  prediction[0][6]=0#no skills
+  prediction[0][idx]=0#no skills
+  """
   if(minimum_time%3!=0):
     prediction[0][10]=0 # triplet skill, if minimum_time%3 is not 0, then generator can't handle any triplet notes.
+  """
   updown_prediction=updown_classifier.predict(shifted[0].reshape(1,24,minimum_time,1))
   if(updown_prediction[0][0]>=updown_prediction[0][1]):
     updown_prediction=1
@@ -233,7 +241,7 @@ def generation_info(G,start_skill,length,chord,minimum_time,RNNmodel,updown_clas
     updown_prediction=0
   prob=prediction/prediction.sum()
   next_skill=np.random.choice(
-      np.arange(13),
+      np.arange(hp.Label_num),
       p=prob[0]
   )
   skills.append(next_skill)
@@ -269,7 +277,7 @@ def generation_info(G,start_skill,length,chord,minimum_time,RNNmodel,updown_clas
       updown_prediction=0
     prob=prediction/prediction.sum()
     next_skill=np.random.choice(
-        np.arange(13),
+        np.arange(hp.Label_num),
         p=prob[0]
     )
     skills.append(next_skill)

@@ -16,7 +16,7 @@ def get_midilist(dir):
   midilist=[]
   prettymidilist=[]
   print("pretty_midi processing...")
-  for names in tqdm(pop909namelist[:300]):
+  for names in tqdm(pop909namelist): # May get killed with whole list..
     try:
       midi_path=dir+"/"+str(names)+"/"+str(names)+".mid"
       mid = mido.MidiFile(midi_path, clip=True)
@@ -32,7 +32,7 @@ def get_music21list(dir):
   pop909namelist.sort()
   music21list=[]
   print("music21_midi processing...")
-  for names in tqdm(pop909namelist[:300]): # Get killed with whole list..
+  for names in tqdm(pop909namelist): # May get killed with whole list..
     try:
       mf = music21.midi.MidiFile()
       mf.open(dir+"/"+str(names)+"/"+str(names)+".mid")
@@ -51,7 +51,8 @@ def get_bar_lists(music21list, prettymidilist, meta_data):
     for i,songs in enumerate(music21list):
         TS = get_ts(i,meta_data)
         if(TS!=[2,2]):#This code is used for using only 4/4 time signature.
-            # This process can handle whole time signature, but I highly recommend to use only one type of TS. Data with 4/4 and 3/4 has different relative time difference.
+            # This processsing method can handle whole time signature, but I highly recommend to use only one type of TS. Data with 4/4 and 3/4 has different relative time difference.
+            # Note that Triplet skill label fits for 4/4.
             pass
         else:
             TS=double(TS)
@@ -95,7 +96,13 @@ def bar_list_to_primining(bar_list,starting_number_list,one_bar_number_list):
         primining_pitch=[]
         primining_time=[]
         primining_matrix=[]
-        first_pitch = bar_list[i][j][0][0]
+        if j==0:
+          first_pitch = bar_list[i][j][0][0]
+        else:
+          if len(bar_list[i][j-1])>0:
+            first_pitch = bar_list[i][j-1][-1][0]
+          else:
+            first_pitch = bar_list[i][j][0][0]
         first_time = starting_number_list[i]+one_bar_number_list[i]*j
         primining_bar_list=[]
         for t in range(8):

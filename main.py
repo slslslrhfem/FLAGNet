@@ -1,4 +1,5 @@
 import sys
+import numpy as np
 from generate_midi import MIDI_generator
 from model import GAN_models, RNN_models, classifier_models
 from preprocess import preprocessing
@@ -8,6 +9,15 @@ import os
 os.environ["TF_FORCE_GPU_ALLOW_GROWTH"]="true"
 
 def main():
+    # Expected Running Code 
+    """
+    python main.py preprocessing
+    python training
+    python generate_midi
+
+    Note that processed data and training parameters already in Github Project folder, So you can use only  "python generate_midi" code for generate samples.
+    preprocessing and training may spend long time.
+    """
 
     if sys.argv[1] == 'train_classifier': # this learn 2 classifier model and save two model.
         classifiers = classifier_models()
@@ -36,7 +46,15 @@ def main():
         rnn_models.RNN_train()
     
     else:
-        print(sys.argv[1])
+        all_labels = np.load('preprocessing/all_labels.npy', allow_pickle=True)
+        tot_dict={}
+        for label in all_labels:
+            for skills in label:
+                if skills not in tot_dict:
+                    tot_dict[skills] = 1
+                else:
+                    tot_dict[skills] += 1
+        print(tot_dict)
     
 
 if __name__=="__main__":
