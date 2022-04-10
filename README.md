@@ -8,9 +8,11 @@ Piano-roll based processing with relational pitch and relational time, and Featu
 
 dcGAN model lots of help from https://github.com/gaborvecsei/CDCGAN-Keras/tree/master/cdcgan.
 
+There are some cherry-picked sample in sample folder, and whole results in MIDI_Result. Results in MIDI_Result should be changed if I use this model and commit it!
+
 ## How to use
 
-1. Prepare Python=3.6 Environments. ( Note that I had some issue for Python=3.9 Environments )
+1. Prepare Python=3.6 Environments. ( Note that This Project had some issue in model for Python=3.9 Environments )
 
 If you use conda Virtual Environments, then..
 
@@ -55,4 +57,5 @@ And then,
     
     
 This model should generated MIDIs, with name [First bar's skill label][chord scale].mid in midi_result folder.
-  
+ 
+colab notebook (Full code & Tutorial) will be added!
