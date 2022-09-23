@@ -38,7 +38,7 @@ main.py code gets one argument that leads what to do,
     
 There is 909 midi files in data but I used 300 file only because of Personal CPU killing issues.
 
-But if you want to use whole data, then modify some codes in **preprocess.py**, line 19 and 35, *pop909namelist[:300]* to *pop909namelist*. Then,
+But if you want to use whole data, then modify some codes in **preprocess.py**, line 19 and 35, *pop909namelist[:300]* to *pop909namelist*. Then, train models with command
 
     python main.py training
   
