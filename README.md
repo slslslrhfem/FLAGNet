@@ -47,7 +47,7 @@ You can also train each models with
     python main.py train_gan
     python main.py train_rnn
 
-Note that above 2 method works exactly same!
+Note that above 2 method(training / train_classifier... rnn) works exactly same!
 
 And then,
 
